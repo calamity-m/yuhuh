@@ -31,6 +31,11 @@ where
 {
     type Response = S::Response;
     type Error = S::Error;
+    // Pin and box because instrumentation changes the future's type from S::Future
+    // to Instrumented<S::Future>. Boxing erases the concrete type so we can
+    // return Pin<Box<dyn Future<...>>> as required by our Service trait.
+    // .instrument() attaches the span context to the future so all downstream
+    // execution (route handlers, other middleware) happens within this span.
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
@@ -53,6 +58,8 @@ where
 
         info!("set request id");
 
+        // Box the instrumented future to match our Service::Future type.
+        // The span will be active for all downstream execution.
         Box::pin(self.inner.call(req).instrument(child_span))
     }
 }
