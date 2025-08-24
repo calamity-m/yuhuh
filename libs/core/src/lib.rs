@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Ok, Result};
-use axum::Json;
-use axum::response::IntoResponse;
-use axum::{Router, http::HeaderName, response::Html, routing::get};
-use serde::Serialize;
-use tracing::Span;
+use axum::extract::FromRef;
+use axum::{Router, http::HeaderName, routing::get};
+use tower_http::trace::{DefaultOnFailure, DefaultOnResponse};
 use tracing::info;
+use tracing::{Level, Span};
+
+use crate::config::Config;
 
 pub mod error;
 
@@ -16,8 +17,10 @@ pub mod middleware {
 
 pub mod dummy;
 
+pub mod health;
+
 pub mod config {
-    #[derive(clap::Parser, Debug)]
+    #[derive(clap::Parser, Debug, Clone)]
     pub struct Config {
         /// Port to serve core on.
         ///
@@ -31,6 +34,17 @@ pub mod config {
     }
 }
 
+#[derive(Clone)]
+pub struct AppState {
+    config: Arc<Config>,
+}
+
+impl FromRef<AppState> for Arc<Config> {
+    fn from_ref(input: &AppState) -> Self {
+        input.config.clone()
+    }
+}
+
 pub async fn serve(config: &config::Config) -> Result<()> {
     info!("serving");
 
@@ -40,8 +54,13 @@ pub async fn serve(config: &config::Config) -> Result<()> {
     // tracing
     let global_span = Arc::new(Span::current());
 
+    let app_state = AppState {
+        config: Arc::new(config.clone()),
+    };
+
     let app = Router::new()
-        .route("/", get(root))
+        .merge(health::health_router())
+        .with_state(app_state.clone())
         .route(
             "/dummy",
             get(dummy::list_messages).post(dummy::create_message),
@@ -50,7 +69,11 @@ pub async fn serve(config: &config::Config) -> Result<()> {
             // Return the core not found error with a nice message for our caller
             error::CoreError::NotFound(Some("no matching route found".to_string()))
         })
-        .layer(tower_http::trace::TraceLayer::new_for_http())
+        .layer(
+            tower_http::trace::TraceLayer::new_for_http()
+                .on_failure(DefaultOnFailure::new().level(Level::ERROR))
+                .on_response(DefaultOnResponse::new().include_headers(true)),
+        )
         .layer(middleware::requestid::LogRequestIdLayer::new(global_span))
         .layer(tower_http::request_id::SetRequestIdLayer::new(
             HeaderName::from_static(middleware::requestid::REQUEST_ID_HEADER),
@@ -69,14 +92,4 @@ pub async fn serve(config: &config::Config) -> Result<()> {
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
-}
-
-async fn root() -> impl IntoResponse {
-    #[derive(Serialize)]
-    struct Message {
-        system: String,
-    }
-    Json(Message {
-        system: "core".to_string(),
-    })
 }

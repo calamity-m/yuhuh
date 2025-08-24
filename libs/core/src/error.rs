@@ -1,5 +1,6 @@
 use axum::{
     Json,
+    extract::rejection::FormRejection,
     http::StatusCode,
     response::{IntoResponse, Response},
 };
@@ -23,6 +24,12 @@ pub enum CoreError {
 
     #[error("Resource not found")]
     NotFound(Option<String>),
+
+    #[error(transparent)]
+    ValidationError(#[from] validator::ValidationErrors),
+
+    #[error(transparent)]
+    FormRejection(#[from] FormRejection),
 }
 
 #[derive(serde::Serialize, Deserialize, Debug)]
@@ -35,6 +42,15 @@ struct ErrorResponse<'a> {
 impl IntoResponse for CoreError {
     fn into_response(self) -> Response {
         match self {
+            CoreError::ValidationError(validation_errors) => (
+                StatusCode::BAD_REQUEST,
+                Json(ErrorResponse {
+                    error: StatusCode::BAD_REQUEST.as_str(),
+                    reason: &format!("Input validation error: [{validation_errors}]")
+                        .replace('\n', ", "),
+                }),
+            )
+                .into_response(),
             CoreError::InternalServerError(message) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(ErrorResponse {
@@ -56,6 +72,14 @@ impl IntoResponse for CoreError {
                 Json(ErrorResponse {
                     error: StatusCode::NOT_FOUND.as_str(),
                     reason: &opt.unwrap_or("resource not found".to_string()),
+                }),
+            )
+                .into_response(),
+            CoreError::FormRejection(rejection) => (
+                StatusCode::BAD_REQUEST,
+                Json(ErrorResponse {
+                    error: StatusCode::BAD_REQUEST.as_str(),
+                    reason: &rejection.to_string(),
                 }),
             )
                 .into_response(),

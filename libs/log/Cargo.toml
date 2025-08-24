@@ -5,8 +5,10 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.45", features = ["derive", "env"] }
+serde = { version = "1.0.219", features = ["derive"] }
 tracing = "0.1.41"
 tracing-attributes = "0.1.30"
+tracing-serde = "0.2.0"
 tracing-subscriber = { version = "0.3.19", features = ["json", "env-filter", "ansi"] }
 
 [dev-dependencies]
