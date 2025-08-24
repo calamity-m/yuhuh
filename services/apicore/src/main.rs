@@ -1,7 +1,7 @@
 use anyhow::{Context, Ok, Result};
 
 use clap::Parser;
-use tracing::{Level, info};
+use tracing::{debug, info};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -11,13 +11,22 @@ async fn main() -> Result<()> {
 
     let config = core::config::Config::parse();
 
-    tracing_subscriber::fmt()
-        // filter spans/events with level TRACE or higher.
-        .with_max_level(Level::TRACE)
-        // build but do not install the subscriber.
-        .init();
+    let global_span = log::init(
+        &log::CommonFields {
+            system: "core",
+            version: "0.0.1",
+        },
+        &config.log,
+    )
+    .expect("logging initialisation failed");
+
+    let _guard = global_span.enter();
 
     info!("Starting API Core");
+
+    debug!("hello there");
+
+    info!("config: {:?}", config);
 
     // Spin up API
     core::serve(&config)

@@ -1,9 +1,7 @@
 [workspace]
 members = [ 
     "libs/core", 
-    "services/apicore"
+    "libs/log",
+    "services/apicore",
 ]
 resolver = "3"
-
-[workspace.dependencies]
-filter = { path = "libs/core" }

@@ -8,4 +8,7 @@ pub struct Config {
     #[clap(long, env)]
     #[arg(default_value_t = 3000)]
     pub port: u16,
+
+    #[clap(flatten)]
+    pub log: log::LoggingConfig,
 }

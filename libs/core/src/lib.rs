@@ -15,7 +15,7 @@ pub async fn serve(config: &Config) -> Result<()> {
         .await
         .with_context(|| format!("failed to serve on port {}", config.port))?;
 
-    info!(system = "apicore", "serving on port {}", config.port);
+    info!("serving on port {}", config.port);
 
     axum::serve(listener, app).await.unwrap();
 

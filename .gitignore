@@ -5,3 +5,6 @@ target
 
 # IDE
 .vscode
+
+# Local
+.env
