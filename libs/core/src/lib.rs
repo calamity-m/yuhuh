@@ -15,9 +15,9 @@ pub mod middleware {
     pub mod requestid;
 }
 
-pub mod dummy;
-
 pub mod health;
+
+pub mod user;
 
 pub mod config {
     #[derive(clap::Parser, Debug, Clone)]
@@ -60,11 +60,8 @@ pub async fn serve(config: &config::Config) -> Result<()> {
 
     let app = Router::new()
         .merge(health::health_router())
+        .merge(user::user_router())
         .with_state(app_state.clone())
-        .route(
-            "/dummy",
-            get(dummy::list_messages).post(dummy::create_message),
-        )
         .fallback(|| async {
             // Return the core not found error with a nice message for our caller
             error::CoreError::NotFound(Some("no matching route found".to_string()))
@@ -72,15 +69,19 @@ pub async fn serve(config: &config::Config) -> Result<()> {
         .layer(
             tower_http::trace::TraceLayer::new_for_http()
                 .on_failure(DefaultOnFailure::new().level(Level::ERROR))
-                .on_response(DefaultOnResponse::new().include_headers(true)),
+                .on_response(
+                    DefaultOnResponse::new()
+                        .include_headers(true)
+                        .level(Level::INFO),
+                ),
         )
+        .layer(tower_http::request_id::PropagateRequestIdLayer::new(
+            HeaderName::from_static(middleware::requestid::REQUEST_ID_HEADER),
+        ))
         .layer(middleware::requestid::LogRequestIdLayer::new(global_span))
         .layer(tower_http::request_id::SetRequestIdLayer::new(
             HeaderName::from_static(middleware::requestid::REQUEST_ID_HEADER),
             tower_http::request_id::MakeRequestUuid,
-        ))
-        .layer(tower_http::request_id::PropagateRequestIdLayer::new(
-            HeaderName::from_static(middleware::requestid::REQUEST_ID_HEADER),
         ));
 
     let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{}", config.port))

@@ -30,6 +30,9 @@ pub enum CoreError {
 
     #[error(transparent)]
     FormRejection(#[from] FormRejection),
+
+    #[error("Not yet implemented")]
+    NotImplemented,
 }
 
 #[derive(serde::Serialize, Deserialize, Debug)]
@@ -80,6 +83,14 @@ impl IntoResponse for CoreError {
                 Json(ErrorResponse {
                     error: StatusCode::BAD_REQUEST.as_str(),
                     reason: &rejection.to_string(),
+                }),
+            )
+                .into_response(),
+            CoreError::NotImplemented => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: StatusCode::INTERNAL_SERVER_ERROR.as_str(),
+                    reason: "not implemented yet",
                 }),
             )
                 .into_response(),
