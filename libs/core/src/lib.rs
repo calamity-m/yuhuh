@@ -2,14 +2,8 @@ use std::sync::Arc;
 
 use anyhow::{Context, Ok, Result};
 use axum::{Router, http::HeaderName, response::Html, routing::get};
-use tower_http::{
-    request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer},
-    trace::TraceLayer,
-};
 use tracing::Span;
 use tracing::info;
-
-use crate::{config::Config, error::CoreError, middleware::requestid::LogRequestIdLayer};
 
 pub mod config;
 
@@ -21,11 +15,7 @@ pub mod middleware {
 
 pub mod dummy;
 
-const REQUEST_ID_HEADER: &str = "x-request-id";
-
-pub async fn serve(config: &Config) -> Result<()> {
-    let x_request_id = HeaderName::from_static(REQUEST_ID_HEADER);
-
+pub async fn serve(config: &config::Config) -> Result<()> {
     info!("serving");
 
     // Grab the current span here as our "global span",
@@ -42,15 +32,17 @@ pub async fn serve(config: &Config) -> Result<()> {
         )
         .fallback(|| async {
             // Return the core not found error with a nice message for our caller
-            CoreError::NotFound(Some("no matching route found".to_string()))
+            error::CoreError::NotFound(Some("no matching route found".to_string()))
         })
-        .layer(TraceLayer::new_for_http())
-        .layer(LogRequestIdLayer::new(global_span))
-        .layer(SetRequestIdLayer::new(
-            x_request_id.clone(),
-            MakeRequestUuid,
+        .layer(tower_http::trace::TraceLayer::new_for_http())
+        .layer(middleware::requestid::LogRequestIdLayer::new(global_span))
+        .layer(tower_http::request_id::SetRequestIdLayer::new(
+            HeaderName::from_static(middleware::requestid::REQUEST_ID_HEADER),
+            tower_http::request_id::MakeRequestUuid,
         ))
-        .layer(PropagateRequestIdLayer::new(x_request_id));
+        .layer(tower_http::request_id::PropagateRequestIdLayer::new(
+            HeaderName::from_static(middleware::requestid::REQUEST_ID_HEADER),
+        ));
 
     let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{}", config.port))
         .await
