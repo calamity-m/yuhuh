@@ -22,11 +22,12 @@ pub enum CoreError {
     Unauthorized,
 
     #[error("Resource not found")]
-    NotFound,
+    NotFound(Option<String>),
 }
 
 #[derive(serde::Serialize, Deserialize, Debug)]
 struct ErrorResponse<'a> {
+    error: &'a str,
     reason: &'a str,
 }
 
@@ -36,20 +37,25 @@ impl IntoResponse for CoreError {
         match self {
             CoreError::InternalServerError(message) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse { reason: &message }),
+                Json(ErrorResponse {
+                    error: StatusCode::INTERNAL_SERVER_ERROR.as_str(),
+                    reason: &message,
+                }),
             )
                 .into_response(),
             CoreError::Unauthorized => (
                 StatusCode::UNAUTHORIZED,
                 Json(ErrorResponse {
+                    error: StatusCode::UNAUTHORIZED.as_str(),
                     reason: "unauthorized",
                 }),
             )
                 .into_response(),
-            CoreError::NotFound => (
+            CoreError::NotFound(opt) => (
                 StatusCode::NOT_FOUND,
                 Json(ErrorResponse {
-                    reason: "not found",
+                    error: StatusCode::NOT_FOUND.as_str(),
+                    reason: &opt.unwrap_or("resource not found".to_string()),
                 }),
             )
                 .into_response(),
