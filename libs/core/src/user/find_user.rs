@@ -1,24 +1,19 @@
-use axum::{Json, extract::Path, response::IntoResponse};
-use serde::{Deserialize, Serialize};
-use tracing::{debug, info};
+use axum::{Json, extract::Path};
+use tracing::{debug, info, instrument};
 use uuid::Uuid;
 
 use crate::{error::CoreError, user::model::user::User};
 
-// A simple data type we'll send and receive as JSON.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Message {
-    content: String,
-}
-
-pub async fn find_user(Path(id): Path<Uuid>) -> Result<Json<User>, CoreError> {
-    debug!("entered find_user - {}", id);
+#[instrument]
+pub async fn find_user_id(Path(id): Path<Uuid>) -> Result<Json<User>, CoreError> {
+    debug!("entered find_user_id - {}", id);
 
     Err(CoreError::NotImplemented)
 }
 
-// Handler for POST /messages
-pub async fn test(Json(message): Json<Message>) -> impl IntoResponse {
-    info!("Handling create_message request");
-    Json(format!("New message: {}", message.content))
+#[instrument]
+pub async fn find_user_uname(Path(username): Path<String>) -> Result<Json<User>, CoreError> {
+    debug!("entered find_user_uname - {}", username);
+
+    Err(CoreError::NotImplemented)
 }

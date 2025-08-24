@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Ok, Result};
 use axum::extract::FromRef;
-use axum::{Router, http::HeaderName, routing::get};
+use axum::{Router, http::HeaderName};
 use tower_http::trace::{DefaultOnFailure, DefaultOnResponse};
 use tracing::info;
 use tracing::{Level, Span};
