@@ -1,11 +1,7 @@
+use axum::Json;
 use axum::response::IntoResponse;
-use axum::{Json, Router, routing::get};
 use serde::{Deserialize, Serialize};
-use std::net::SocketAddr;
-use tokio;
-use tower_http::trace::TraceLayer;
 use tracing::info;
-use tracing_subscriber::EnvFilter;
 
 // A simple data type we'll send and receive as JSON.
 #[derive(Debug, Serialize, Deserialize)]

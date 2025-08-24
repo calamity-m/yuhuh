@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Ok, Result};
+use axum::Json;
+use axum::response::IntoResponse;
 use axum::{Router, http::HeaderName, response::Html, routing::get};
+use serde::Serialize;
 use tracing::Span;
 use tracing::info;
-
-pub mod config;
 
 pub mod error;
 
@@ -14,6 +15,21 @@ pub mod middleware {
 }
 
 pub mod dummy;
+
+pub mod config {
+    #[derive(clap::Parser, Debug)]
+    pub struct Config {
+        /// Port to serve core on.
+        ///
+        /// Defaults to 3000
+        #[clap(long, env)]
+        #[arg(default_value_t = 3000)]
+        pub port: u16,
+
+        #[clap(flatten)]
+        pub log: log::LoggingConfig,
+    }
+}
 
 pub async fn serve(config: &config::Config) -> Result<()> {
     info!("serving");
@@ -25,7 +41,7 @@ pub async fn serve(config: &config::Config) -> Result<()> {
     let global_span = Arc::new(Span::current());
 
     let app = Router::new()
-        .route("/", get(handler))
+        .route("/", get(root))
         .route(
             "/dummy",
             get(dummy::list_messages).post(dummy::create_message),
@@ -55,6 +71,12 @@ pub async fn serve(config: &config::Config) -> Result<()> {
     Ok(())
 }
 
-async fn handler() -> Html<&'static str> {
-    Html("<h1>Hello, World!</h1>")
+async fn root() -> impl IntoResponse {
+    #[derive(Serialize)]
+    struct Message {
+        system: String,
+    }
+    Json(Message {
+        system: "core".to_string(),
+    })
 }
