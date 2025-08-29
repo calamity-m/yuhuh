@@ -14,6 +14,7 @@ use crate::error::*;
 use crate::health::*;
 use crate::state::AppState;
 use crate::user::find_user::repository::DummyFindUserRepository;
+use crate::user::router::user_router;
 use crate::user::state::*;
 
 pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
@@ -32,6 +33,7 @@ pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
 
     let app = Router::new()
         .merge(health_router())
+        .merge(user_router())
         //.merge(user::user_router())
         .with_state(app_state.clone())
         .fallback(|| async {
