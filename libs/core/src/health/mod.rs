@@ -1,9 +1,7 @@
-use std::sync::Arc;
-
-use axum::{Json, Router, extract::State, response::IntoResponse, routing::get};
+use axum::{Json, Router, response::IntoResponse, routing::get};
 use serde::Serialize;
 
-use crate::{AppState, config::Config, error::CoreError};
+use crate::state::AppState;
 
 #[derive(Serialize)]
 struct Health {
@@ -17,13 +15,5 @@ pub fn health_router() -> Router<AppState> {
         })
     }
 
-    async fn config(State(config): State<Arc<Config>>) -> Result<impl IntoResponse, CoreError> {
-        Ok(Json(Health {
-            status: config.port.to_string(),
-        }))
-    }
-
-    Router::new()
-        .route("/health", get(handler))
-        .route("/health/config", get(config))
+    Router::new().route("/health", get(handler))
 }

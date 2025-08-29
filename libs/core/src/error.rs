@@ -33,6 +33,9 @@ pub enum CoreError {
 
     #[error("Not yet implemented")]
     NotImplemented,
+
+    #[error("Bad request")]
+    BadRequest(String),
 }
 
 #[derive(serde::Serialize, Deserialize, Debug)]
@@ -91,6 +94,14 @@ impl IntoResponse for CoreError {
                 Json(ErrorResponse {
                     error: StatusCode::INTERNAL_SERVER_ERROR.as_str(),
                     reason: "not implemented yet",
+                }),
+            )
+                .into_response(),
+            CoreError::BadRequest(message) => (
+                StatusCode::BAD_REQUEST,
+                Json(ErrorResponse {
+                    error: StatusCode::BAD_REQUEST.as_str(),
+                    reason: &message,
                 }),
             )
                 .into_response(),
