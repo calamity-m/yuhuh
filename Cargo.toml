@@ -1,7 +1,8 @@
 [workspace]
 members = [ 
-    "libs/core", 
-    "libs/log",
+    "libs/yuhuh", 
+    "libs/log", 
+    "libs/middleware",
     "services/apicore",
 ]
 resolver = "3"

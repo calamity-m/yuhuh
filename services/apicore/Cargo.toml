@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-core = { path = "../../libs/core" }
+yuhuh = { path = "../../libs/yuhuh" }
 log = { path = "../../libs/log" }
 anyhow = { version = "1.0.99", features = ["backtrace"] }
 clap = { version = "4.5.45", features = ["derive", "env"] }

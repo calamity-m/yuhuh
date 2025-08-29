@@ -7,11 +7,13 @@ use tower_http::trace::{DefaultOnFailure, DefaultOnResponse};
 use tracing::info;
 use tracing::{Level, Span};
 
+use middleware::*;
+
 use crate::config::Config;
 use crate::error::*;
 use crate::health::*;
-use crate::middleware::*;
 use crate::state::AppState;
+use crate::user::find_user::repository::DummyFindUserRepository;
 use crate::user::state::*;
 
 pub async fn serve(config: &Config, db: PgPool) -> Result<()> {

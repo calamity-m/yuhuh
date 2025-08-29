@@ -1,12 +1,13 @@
 [package]
-name = "core"
+name = "yuhuh"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 log = { path = "../log" }
+middleware = { path = "../middleware" }
 anyhow = { version = "1.0.99", features = ["backtrace"] }
-axum = "0.8.4"
+axum = { version = "0.8.4", features = ["macros"] }
 clap = { version = "4.5.45", features = ["derive", "env"] }
 full = "0.3.0"
 serde = { version = "1.0.219", features = ["derive"] }

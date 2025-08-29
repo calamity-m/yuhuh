@@ -10,7 +10,7 @@ async fn main() -> Result<()> {
     // since we're not going to use a `.env` file if we deploy this application.
     dotenvy::dotenv().ok();
 
-    let config = core::config::Config::parse();
+    let config = yuhuh::config::Config::parse();
 
     let global_span = log::init(
         &log::CommonFields {
@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
     info!("config: {:?}", config);
 
     // Spin up API
-    core::handler::serve(&config, db)
+    yuhuh::handler::serve(&config, db)
         .await
         .with_context(|| "failed to run apicore")?;
 
