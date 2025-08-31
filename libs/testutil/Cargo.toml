@@ -1,0 +1,10 @@
+[package]
+name = "testutil"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sqlx = { workspace = true, features = ["postgres"] }
+uuid = { workspace = true, features = ["serde", "v4"] }
+testcontainers-modules = { version = "0.13.0", features = ["postgres"] }
+tokio = { workspace = true, features = ["sync"] }

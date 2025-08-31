@@ -38,7 +38,7 @@ pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
         .with_state(app_state.clone())
         .fallback(|| async {
             // Return the core not found error with a nice message for our caller
-            CoreError::NotFound(Some("no matching route found".to_string()))
+            YuhuhError::NotFound(Some("no matching route found".to_string()))
         })
         .layer(
             tower_http::trace::TraceLayer::new_for_http()

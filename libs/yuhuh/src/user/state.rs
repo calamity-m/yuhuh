@@ -4,7 +4,7 @@ use super::find_user::repository::*;
 
 #[derive(Debug)]
 pub struct UserState {
-    find_user_repo: Arc<dyn FindUserRepository>,
+    pub find_user_repo: Arc<dyn FindUserRepository>,
 }
 
 impl UserState {

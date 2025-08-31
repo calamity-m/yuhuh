@@ -1,6 +1,5 @@
 use axum::{
     Json,
-    extract::rejection::FormRejection,
     http::StatusCode,
     response::{IntoResponse, Response},
 };
@@ -14,8 +13,8 @@ use thiserror::Error;
 /// For convenience, this represents both API errors as well as internal recoverable errors,
 /// and maps them to appropriate status codes along with at least a minimally useful error
 /// message in a plain text body, or a JSON body in the case of `UnprocessableEntity`.
-#[derive(Error, Debug)]
-pub enum CoreError {
+#[derive(PartialEq, Error, Debug)]
+pub enum YuhuhError {
     #[error("Internal Server Error: {0}")]
     InternalServerError(String),
 
@@ -27,9 +26,6 @@ pub enum CoreError {
 
     #[error(transparent)]
     ValidationError(#[from] validator::ValidationErrors),
-
-    #[error(transparent)]
-    FormRejection(#[from] FormRejection),
 
     #[error("Not yet implemented")]
     NotImplemented,
@@ -45,10 +41,10 @@ struct ErrorResponse<'a> {
 }
 
 // Implement IntoResponse to convert AppError into an HTTP response
-impl IntoResponse for CoreError {
+impl IntoResponse for YuhuhError {
     fn into_response(self) -> Response {
         match self {
-            CoreError::ValidationError(validation_errors) => (
+            YuhuhError::ValidationError(validation_errors) => (
                 StatusCode::BAD_REQUEST,
                 Json(ErrorResponse {
                     error: StatusCode::BAD_REQUEST.as_str(),
@@ -57,7 +53,7 @@ impl IntoResponse for CoreError {
                 }),
             )
                 .into_response(),
-            CoreError::InternalServerError(message) => (
+            YuhuhError::InternalServerError(message) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(ErrorResponse {
                     error: StatusCode::INTERNAL_SERVER_ERROR.as_str(),
@@ -65,7 +61,7 @@ impl IntoResponse for CoreError {
                 }),
             )
                 .into_response(),
-            CoreError::Unauthorized => (
+            YuhuhError::Unauthorized => (
                 StatusCode::UNAUTHORIZED,
                 Json(ErrorResponse {
                     error: StatusCode::UNAUTHORIZED.as_str(),
@@ -73,7 +69,7 @@ impl IntoResponse for CoreError {
                 }),
             )
                 .into_response(),
-            CoreError::NotFound(opt) => (
+            YuhuhError::NotFound(opt) => (
                 StatusCode::NOT_FOUND,
                 Json(ErrorResponse {
                     error: StatusCode::NOT_FOUND.as_str(),
@@ -81,15 +77,7 @@ impl IntoResponse for CoreError {
                 }),
             )
                 .into_response(),
-            CoreError::FormRejection(rejection) => (
-                StatusCode::BAD_REQUEST,
-                Json(ErrorResponse {
-                    error: StatusCode::BAD_REQUEST.as_str(),
-                    reason: &rejection.to_string(),
-                }),
-            )
-                .into_response(),
-            CoreError::NotImplemented => (
+            YuhuhError::NotImplemented => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(ErrorResponse {
                     error: StatusCode::INTERNAL_SERVER_ERROR.as_str(),
@@ -97,7 +85,7 @@ impl IntoResponse for CoreError {
                 }),
             )
                 .into_response(),
-            CoreError::BadRequest(message) => (
+            YuhuhError::BadRequest(message) => (
                 StatusCode::BAD_REQUEST,
                 Json(ErrorResponse {
                     error: StatusCode::BAD_REQUEST.as_str(),
@@ -127,8 +115,8 @@ mod tests {
             Router::new().route("/", get(handler))
         }
 
-        async fn handler() -> Result<(), CoreError> {
-            Err(CoreError::InternalServerError("bad stuff".to_string()))
+        async fn handler() -> Result<(), YuhuhError> {
+            Err(YuhuhError::InternalServerError("bad stuff".to_string()))
         }
         let response = app()
             .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())

@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-clap = { version = "4.5.45", features = ["derive", "env"] }
-serde = { version = "1.0.219", features = ["derive"] }
-tracing = "0.1.41"
-tracing-attributes = "0.1.30"
-tracing-serde = "0.2.0"
-tracing-subscriber = { version = "0.3.19", features = ["json", "env-filter", "ansi"] }
+clap = { workspace = true, features = ["derive", "env"] }
+serde = { workspace = true, features = ["derive"] }
+tracing = { workspace = true }
+tracing-attributes = { workspace = true }
+tracing-serde = { workspace = true  }
+tracing-subscriber = { workspace = true, features = ["json", "env-filter", "ansi"] }
 
 [dev-dependencies]
 tracing-test = "0.2.5"

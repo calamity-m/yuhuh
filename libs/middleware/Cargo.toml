@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = "0.8.4"
-tower = "0.5.2"
-tower-http = { version = "0.6.6", features = ["request-id", "trace"] }
-tracing = "0.1.41"
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true, features = ["request-id", "trace"] }
+tracing = { workspace = true }
