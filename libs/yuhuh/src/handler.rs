@@ -12,10 +12,8 @@ use middleware::*;
 use crate::config::Config;
 use crate::error::*;
 use crate::health::*;
-use crate::state::AppState;
-use crate::user::find_user::repository::DummyFindUserRepository;
+use crate::state::{AppState, create_app_state};
 use crate::user::router::user_router;
-use crate::user::state::*;
 
 pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
     info!("serving");
@@ -26,10 +24,7 @@ pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
     // tracing
     let global_span = Arc::new(Span::current());
 
-    let app_state = AppState {
-        config: Arc::new(config.clone()),
-        user: Arc::new(UserState::new(Arc::new(DummyFindUserRepository {}))),
-    };
+    let app_state = create_app_state(config, db);
 
     let app = Router::new()
         .merge(health_router())

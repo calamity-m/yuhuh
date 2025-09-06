@@ -1,4 +1,4 @@
-#[derive(clap::Parser, Debug, Clone)]
+#[derive(clap::Parser, Debug, Clone, Default)]
 pub struct Config {
     /// Port to serve core on.
     ///

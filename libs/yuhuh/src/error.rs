@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use axum::{
     Json,
     http::StatusCode,
@@ -13,7 +15,7 @@ use thiserror::Error;
 /// For convenience, this represents both API errors as well as internal recoverable errors,
 /// and maps them to appropriate status codes along with at least a minimally useful error
 /// message in a plain text body, or a JSON body in the case of `UnprocessableEntity`.
-#[derive(PartialEq, Error, Debug)]
+#[derive(Error, Debug)]
 pub enum YuhuhError {
     #[error("Internal Server Error: {0}")]
     InternalServerError(String),
@@ -32,6 +34,15 @@ pub enum YuhuhError {
 
     #[error("Bad request")]
     BadRequest(String),
+
+    #[error("Database error")]
+    DatabaseError(#[from] sqlx::Error),
+
+    #[error("Context error")]
+    ContextError {
+        context: String,
+        error: Box<dyn std::error::Error + 'static + Send + Sync>,
+    },
 }
 
 #[derive(serde::Serialize, Deserialize, Debug)]
@@ -93,6 +104,30 @@ impl IntoResponse for YuhuhError {
                 }),
             )
                 .into_response(),
+            YuhuhError::DatabaseError(error) => {
+                tracing::error!(error = ?error, "encounterd error");
+
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(ErrorResponse {
+                        error: StatusCode::BAD_REQUEST.as_str(),
+                        reason: "database error, please contact support",
+                    }),
+                )
+                    .into_response();
+            }
+            YuhuhError::ContextError { context, error } => {
+                tracing::error!(error = ?error, "encounterd error - context: {}", context);
+
+                return (
+                    StatusCode::BAD_REQUEST,
+                    Json(ErrorResponse {
+                        error: StatusCode::BAD_REQUEST.as_str(),
+                        reason: &context,
+                    }),
+                )
+                    .into_response();
+            }
         }
     }
 }

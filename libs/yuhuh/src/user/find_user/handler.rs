@@ -50,13 +50,13 @@ pub async fn find_user(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pretty_assertions::assert_eq;
 
     mod unit_tests {
         use super::*;
 
         use crate::user::find_user::repository::FindUserRepository;
         use async_trait::async_trait;
+        use testutil::assert_variant;
 
         #[derive(Debug)]
         pub struct TestFindUserRepository {}
@@ -79,17 +79,14 @@ mod tests {
 
             assert!(result.is_err());
 
-            self::assert_eq!(
-                result.err(),
-                Some(YuhuhError::BadRequest("missing query".to_string()))
-            );
+            assert_variant!(result.err().unwrap(), YuhuhError::BadRequest(_));
         }
     }
 
     mod integration_tests {
         #[tokio::test]
         async fn test_find_user() {
-            let db = testutil::get_test_db_static();
+            let db = testutil::get_test_db_instance().await;
         }
     }
 }

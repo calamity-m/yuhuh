@@ -3,7 +3,8 @@ members = [
     "libs/yuhuh", 
     "libs/log", 
     "libs/middleware",
-    "services/apicore", "libs/testutil",
+    "services/cmd-yuhuh", 
+    "libs/testutil",
 ]
 resolver = "3"
 
@@ -29,7 +30,7 @@ tower-http = { version = "0.6.6", features = ["request-id", "trace"] }
 validator = { version = "0.20.0", features = ["derive"] }
 uuid = { version = "1.18.0", features = ["serde", "v4", "v7"] }
 chrono = { version = "0.4.41", features = ["serde"] }
-sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio", "tls-native-tls"] }
+sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio", "tls-native-tls", "derive", "migrate", "uuid", "chrono", "json", "macros"] }
 async-trait = "0.1.89"
 pretty_assertions = "1.4.1"
 dotenvy = "0.15.7"

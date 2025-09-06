@@ -39,6 +39,17 @@ pub struct LoggingConfig {
     pub sqlx_level: tracing::Level,
 }
 
+impl Default for LoggingConfig {
+    fn default() -> Self {
+        Self {
+            format: Default::default(),
+            level: Level::INFO,
+            axum_level: Level::INFO,
+            sqlx_level: Level::INFO,
+        }
+    }
+}
+
 /// Common fields included in all log entries and spans.
 ///
 /// This struct contains metadata that should be present across all logging

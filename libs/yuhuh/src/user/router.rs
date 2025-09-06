@@ -5,3 +5,48 @@ use crate::{state::AppState, user::find_user::handler::find_user};
 pub fn user_router() -> Router<AppState> {
     Router::new().route("/user", get(find_user))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::{config::Config, state::create_app_state};
+
+    use pretty_assertions::assert_eq;
+
+    use axum::{
+        body::Body,
+        extract::connect_info::MockConnectInfo,
+        http::{self, Request, StatusCode},
+    };
+    use clap::Parser;
+    use http_body_util::BodyExt;
+    use log::LoggingConfig;
+    // for `collect`
+    use serde_json::{Value, json};
+    use sqlx::PgPool;
+    use tokio::net::TcpListener;
+    use tower::{Service, ServiceExt}; // for `call`, `oneshot`, and `ready`
+
+    #[tokio::test]
+    async fn hello_world() {
+        let app = user_router();
+
+        let db = testutil::get_test_db_instance().await;
+
+        crate::migrations::run_migrations_with_db(db.clone())
+            .await
+            .expect("db migrations successful");
+
+        // `Router` implements `tower::Service<Request<Body>>` so we can
+        // call it like any tower service, no need to run an HTTP server.
+        let response = app
+            .with_state(create_app_state(&Config::default(), db))
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        // Not found as / hosts nothing
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
+}

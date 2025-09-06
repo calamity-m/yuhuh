@@ -1,42 +1,29 @@
+pub mod asserts;
+
+use std::pin::Pin;
+
 use sqlx::{Executor, PgPool};
 use testcontainers_modules::{
     postgres::{self, Postgres},
-    testcontainers::{ContainerAsync, runners::AsyncRunner},
+    testcontainers::{ContainerAsync, ImageExt, runners::AsyncRunner},
 };
 use tokio::sync::OnceCell;
 use uuid::Uuid;
 
-/// Static holder for the test database connection pool.
-///
-/// The pool will live for the entire lifetime of the test binary once initialized.
-static TEST_DB: OnceCell<PgPool> = OnceCell::const_new();
+struct TestContainer {
+    container: ContainerAsync<Postgres>,
+}
 
-/// Returns a reference to a test PostgreSQL database connection pool.
-///
-/// This function will:
-/// 1. Spawn a new PostgreSQL database using `testcontainers` (with a randomized database name).
-/// 2. Initialize the database (e.g., run migrations if needed).
-/// 3. Store the resulting `PgPool` in a static `OnceCell`, so subsequent calls
-///    return the same pool.
-///
-/// # Notes
-/// - The database will persist for the lifetime of the test binary.
-/// - Each test should ideally use transactions or cleanup code to avoid interfering
-///   with other tests.
-///
-/// ```rust,ignore
-/// #[tokio::test]
-/// async fn test_stuff() {
-///     let db = get_test_db();
-/// }
-pub async fn get_test_db_static() -> &'static PgPool {
-    TEST_DB.get_or_init(get_test_db_instance).await
+impl Drop for TestContainer {
+    fn drop(&mut self) {
+        println!("cleaning up container")
+    }
 }
 
 // Global container instance that persists across multiple test database creations.
 // Uses OnceCell to ensure the container is only started once per test run,
 // improving performance when running multiple tests that need databases.
-static POSTGRES_CONTAINER: OnceCell<ContainerAsync<Postgres>> = OnceCell::const_new();
+static POSTGRES_CONTAINER: OnceCell<TestContainer> = OnceCell::const_new();
 
 /// Creates a fresh PostgreSQL database instance for testing purposes.
 ///
@@ -94,11 +81,19 @@ pub async fn get_test_db_instance() -> PgPool {
     // Get or initialize the shared PostgreSQL container
     // This async closure only runs once thanks to OnceCell
     let container = POSTGRES_CONTAINER
-        .get_or_init(|| async { postgres::Postgres::default().start().await.unwrap() })
+        .get_or_init(|| async {
+            TestContainer {
+                container: Postgres::default()
+                    .with_tag("18rc1-alpine3.22")
+                    .start()
+                    .await
+                    .unwrap(),
+            }
+        })
         .await;
 
     // Get the host port that Docker has mapped to the container's PostgreSQL port (5432)
-    let host_port = container.get_host_port_ipv4(5432).await.unwrap();
+    let host_port = container.container.get_host_port_ipv4(5432).await.unwrap();
 
     // Connect to the administrative "postgres" database to create our test database
     let admin_conn = &format!("postgres://postgres:postgres@127.0.0.1:{host_port}/postgres");
@@ -117,7 +112,7 @@ pub async fn get_test_db_instance() -> PgPool {
     // Build connection string for the newly created test database
     let conn_str = format!(
         "postgres://postgres:postgres@127.0.0.1:{}/{}",
-        container.get_host_port_ipv4(5432).await.unwrap(),
+        container.container.get_host_port_ipv4(5432).await.unwrap(),
         db_name
     );
 
