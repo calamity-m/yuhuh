@@ -12,7 +12,7 @@ use middleware::*;
 use crate::config::Config;
 use crate::error::*;
 use crate::health::*;
-use crate::state::{AppState, create_app_state};
+use crate::state::create_app_state;
 use crate::user::router::user_router;
 
 pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
@@ -33,7 +33,7 @@ pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
         .with_state(app_state.clone())
         .fallback(|| async {
             // Return the core not found error with a nice message for our caller
-            YuhuhError::NotFound(Some("no matching route found".to_string()))
+            YuhuhError::NotFound("no matching route found".to_string())
         })
         .layer(
             tower_http::trace::TraceLayer::new_for_http()

@@ -16,17 +16,10 @@ mod tests {
 
     use axum::{
         body::Body,
-        extract::connect_info::MockConnectInfo,
-        http::{self, Request, StatusCode},
+        http::{Request, StatusCode},
     };
-    use clap::Parser;
-    use http_body_util::BodyExt;
-    use log::LoggingConfig;
-    // for `collect`
-    use serde_json::{Value, json};
-    use sqlx::PgPool;
-    use tokio::net::TcpListener;
-    use tower::{Service, ServiceExt}; // for `call`, `oneshot`, and `ready`
+
+    use tower::ServiceExt;
 
     #[tokio::test]
     async fn hello_world() {

@@ -29,9 +29,9 @@ SELECT trigger_updated_at('"users"');
 create table discord_users
 (
     -- ID from discord
-    discord_id  bigint,
+    discord_id  bigint      primary key,
     -- Name of the discord user
-    username    text,
+    username    text        not null,
     -- Reference to the yuhuh user
-    user_id     uuid        not null references "users" (user_id)
+    user_id     uuid        unique not null references "users" (user_id)
 );

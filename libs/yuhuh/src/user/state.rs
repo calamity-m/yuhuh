@@ -17,6 +17,6 @@ impl UserState {
 
 pub fn create_user_state(db: PgPool) -> UserState {
     UserState {
-        find_user_repo: Arc::new(DummyFindUserRepository {}),
+        find_user_repo: Arc::new(FindUserRepositoryImpl { db: db.clone() }),
     }
 }

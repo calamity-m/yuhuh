@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use axum::{
     Json,
     http::StatusCode,
@@ -24,7 +22,7 @@ pub enum YuhuhError {
     Unauthorized,
 
     #[error("Resource not found")]
-    NotFound(Option<String>),
+    NotFound(String),
 
     #[error(transparent)]
     ValidationError(#[from] validator::ValidationErrors),
@@ -37,6 +35,9 @@ pub enum YuhuhError {
 
     #[error("Database error")]
     DatabaseError(#[from] sqlx::Error),
+
+    #[error("{0}")]
+    Conflict(String),
 
     #[error("Context error")]
     ContextError {
@@ -54,80 +55,74 @@ struct ErrorResponse<'a> {
 // Implement IntoResponse to convert AppError into an HTTP response
 impl IntoResponse for YuhuhError {
     fn into_response(self) -> Response {
-        match self {
-            YuhuhError::ValidationError(validation_errors) => (
-                StatusCode::BAD_REQUEST,
-                Json(ErrorResponse {
-                    error: StatusCode::BAD_REQUEST.as_str(),
-                    reason: &format!("Input validation error: [{validation_errors}]")
-                        .replace('\n', ", "),
-                }),
-            )
-                .into_response(),
-            YuhuhError::InternalServerError(message) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse {
-                    error: StatusCode::INTERNAL_SERVER_ERROR.as_str(),
-                    reason: &message,
-                }),
-            )
-                .into_response(),
-            YuhuhError::Unauthorized => (
-                StatusCode::UNAUTHORIZED,
-                Json(ErrorResponse {
-                    error: StatusCode::UNAUTHORIZED.as_str(),
-                    reason: "unauthorized",
-                }),
-            )
-                .into_response(),
-            YuhuhError::NotFound(opt) => (
-                StatusCode::NOT_FOUND,
-                Json(ErrorResponse {
-                    error: StatusCode::NOT_FOUND.as_str(),
-                    reason: &opt.unwrap_or("resource not found".to_string()),
-                }),
-            )
-                .into_response(),
-            YuhuhError::NotImplemented => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse {
-                    error: StatusCode::INTERNAL_SERVER_ERROR.as_str(),
-                    reason: "not implemented yet",
-                }),
-            )
-                .into_response(),
-            YuhuhError::BadRequest(message) => (
-                StatusCode::BAD_REQUEST,
-                Json(ErrorResponse {
-                    error: StatusCode::BAD_REQUEST.as_str(),
-                    reason: &message,
-                }),
-            )
-                .into_response(),
-            YuhuhError::DatabaseError(error) => {
-                tracing::error!(error = ?error, "encounterd error");
+        self.response()
+    }
+}
 
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(ErrorResponse {
-                        error: StatusCode::BAD_REQUEST.as_str(),
-                        reason: "database error, please contact support",
-                    }),
-                )
-                    .into_response();
+impl YuhuhError {
+    fn response(&self) -> Response {
+        (
+            self.status_code(),
+            Json(ErrorResponse {
+                error: self.status_code().as_str(),
+                reason: &self.message(),
+            }),
+        )
+            .into_response()
+    }
+
+    fn message(&self) -> String {
+        match self {
+            YuhuhError::InternalServerError(err)
+            | YuhuhError::BadRequest(err)
+            | YuhuhError::NotFound(err)
+            | YuhuhError::Conflict(err) => {
+                tracing::error!(error=?err, "encountered error - message: {}", err);
+
+                err.to_string()
+            }
+            YuhuhError::Unauthorized => {
+                tracing::error!("encountered unauthorized error");
+
+                "unauthorized".to_string()
+            }
+            YuhuhError::ValidationError(validation_errors) => {
+                tracing::error!(error=?validation_errors, "encountered validation errors");
+
+                let message =
+                    format!("Input validation error: [{validation_errors}]").replace('\n', ", ");
+
+                message.to_owned()
+            }
+            YuhuhError::NotImplemented => {
+                tracing::error!("encountered not implemented error");
+
+                "not implemented".to_string()
+            }
+            YuhuhError::DatabaseError(error) => {
+                tracing::error!(error=?error, "encountered database error");
+
+                "internal error occured".to_string()
             }
             YuhuhError::ContextError { context, error } => {
-                tracing::error!(error = ?error, "encounterd error - context: {}", context);
+                tracing::error!(error=?error, "encountered context error");
 
-                return (
-                    StatusCode::BAD_REQUEST,
-                    Json(ErrorResponse {
-                        error: StatusCode::BAD_REQUEST.as_str(),
-                        reason: &context,
-                    }),
-                )
-                    .into_response();
+                context.clone()
             }
+        }
+    }
+
+    fn status_code(&self) -> StatusCode {
+        match self {
+            YuhuhError::InternalServerError(_)
+            | YuhuhError::DatabaseError(_)
+            | YuhuhError::NotImplemented
+            | YuhuhError::ContextError { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            YuhuhError::Unauthorized => StatusCode::UNAUTHORIZED,
+            YuhuhError::NotFound(_) => StatusCode::NOT_FOUND,
+            YuhuhError::Conflict(_)
+            | YuhuhError::BadRequest(_)
+            | YuhuhError::ValidationError(_) => StatusCode::BAD_REQUEST,
         }
     }
 }

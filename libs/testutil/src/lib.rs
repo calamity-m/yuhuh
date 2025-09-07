@@ -1,10 +1,8 @@
 pub mod asserts;
 
-use std::pin::Pin;
-
 use sqlx::{Executor, PgPool};
 use testcontainers_modules::{
-    postgres::{self, Postgres},
+    postgres::Postgres,
     testcontainers::{ContainerAsync, ImageExt, runners::AsyncRunner},
 };
 use tokio::sync::OnceCell;

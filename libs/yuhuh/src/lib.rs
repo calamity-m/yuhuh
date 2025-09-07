@@ -1,6 +1,6 @@
+pub mod api;
 pub mod config;
 pub mod error;
-pub mod handler;
 pub mod health;
 pub mod state;
 pub mod user;
@@ -30,7 +30,7 @@ pub async fn main(config: &config::Config) -> Result<()> {
     info!("db connection and setup successful");
 
     // Spin up API
-    handler::serve(config, db)
+    api::serve(config, db)
         .await
         .with_context(|| "failed to run yuhuh")?;
 

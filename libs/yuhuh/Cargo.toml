@@ -22,7 +22,7 @@ tower-http = { workspace = true, features = ["request-id", "trace"] }
 validator = { workspace = true, features = ["derive"] }
 uuid = { workspace = true, features = ["serde", "v4", "v7"] }
 chrono = { workspace = true, features = ["serde"] }
-sqlx = { workspace = true, features = ["postgres", "runtime-tokio", "tls-native-tls"] }
+sqlx = { workspace = true, features = ["chrono", "postgres", "runtime-tokio", "tls-native-tls"] }
 async-trait = { workspace = true }
 pretty_assertions = { workspace = true }
 
