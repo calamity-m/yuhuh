@@ -15,18 +15,10 @@ use crate::health::*;
 use crate::state::create_app_state;
 use crate::user::router::user_router;
 
-pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
-    info!("serving");
-
-    // Grab the current span here as our "global span",
-    // so that we can just add to it with our middlewares
-    // and whatever other layers need to deal with
-    // tracing
-    let global_span = Arc::new(Span::current());
-
+pub fn new_app(config: &Config, db: PgPool, global_span: Arc<Span>) -> Router {
     let app_state = create_app_state(config, db);
 
-    let app = Router::new()
+    Router::new()
         .merge(health_router())
         .merge(user_router())
         //.merge(user::user_router())
@@ -51,7 +43,19 @@ pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
         .layer(tower_http::request_id::SetRequestIdLayer::new(
             HeaderName::from_static(requestid::REQUEST_ID_HEADER),
             tower_http::request_id::MakeRequestUuid,
-        ));
+        ))
+}
+
+pub async fn serve(config: &Config, db: PgPool) -> Result<()> {
+    info!("serving");
+
+    // Grab the current span here as our "global span",
+    // so that we can just add to it with our middlewares
+    // and whatever other layers need to deal with
+    // tracing
+    let global_span = Arc::new(Span::current());
+
+    let app: Router = new_app(config, db, global_span);
 
     let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{}", config.port))
         .await

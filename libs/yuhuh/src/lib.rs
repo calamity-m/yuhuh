@@ -2,11 +2,9 @@ pub mod api;
 pub mod config;
 pub mod error;
 pub mod health;
+pub mod migrations;
 pub mod state;
 pub mod user;
-
-/// private module for migration handling
-mod migrations;
 
 use anyhow::{Context, Ok, Result};
 use tracing::info;

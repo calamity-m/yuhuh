@@ -1,22 +1,18 @@
-use std::{fmt::Debug, sync::Arc};
+use std::fmt::Debug;
 
 use sqlx::PgPool;
 
-use super::find_user::repository::*;
-
 #[derive(Debug)]
 pub struct UserState {
-    pub find_user_repo: Arc<dyn FindUserRepository>,
+    pub db: PgPool,
 }
 
 impl UserState {
-    pub fn new(find_user_repo: Arc<dyn FindUserRepository>) -> Self {
-        UserState { find_user_repo }
+    pub fn new(db: PgPool) -> Self {
+        UserState { db }
     }
 }
 
 pub fn create_user_state(db: PgPool) -> UserState {
-    UserState {
-        find_user_repo: Arc::new(FindUserRepositoryImpl { db: db.clone() }),
-    }
+    UserState { db: db.clone() }
 }

@@ -1,3 +1,7 @@
+//! old repository which had
+//! working async traits with
+//! axum
+
 use async_trait::async_trait;
 use sqlx::{PgPool, Postgres};
 use tracing::{error, info};

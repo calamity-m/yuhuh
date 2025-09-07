@@ -1,16 +1,5 @@
-use axum::{Router, routing::get};
-
-use crate::{state::AppState, user::features::find_user};
-
-pub fn user_router() -> Router<AppState> {
-    Router::new().route("/user", get(find_user::handler))
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    use crate::{config::Config, state::create_app_state};
 
     use pretty_assertions::assert_eq;
 
@@ -23,18 +12,11 @@ mod tests {
 
     #[tokio::test]
     async fn hello_world() {
-        let app = user_router();
-
-        let db = testutil::get_test_db_instance().await;
-
-        crate::migrations::run_migrations_with_db(db.clone())
-            .await
-            .expect("db migrations successful");
+        let (app, _db) = crate::common::setup().await;
 
         // `Router` implements `tower::Service<Request<Body>>` so we can
         // call it like any tower service, no need to run an HTTP server.
         let response = app
-            .with_state(create_app_state(&Config::default(), db))
             .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
             .await
             .unwrap();
