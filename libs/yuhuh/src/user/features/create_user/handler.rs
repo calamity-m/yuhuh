@@ -8,16 +8,13 @@ use std::sync::Arc;
 
 use axum::{Json, extract::State};
 use serde::{Deserialize, Serialize};
-use tracing::{info, instrument};
+use tracing::{info, instrument, warn};
 use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
     error::YuhuhError,
-    user::{
-        features::{create_user, find_user},
-        state::UserState,
-    },
+    user::{features::create_user, state::UserState},
 };
 
 // =============================================================================
@@ -68,12 +65,13 @@ pub async fn post_create_discord_user(
     Json(request): Json<CreateDiscordUserRequest>,
 ) -> Result<Json<CreateDiscordUserResponse>, YuhuhError> {
     // Check if a user with this Discord ID already exists
-    if user_state
+    if let Ok(Some(user)) = user_state
         .find_user_repo
         .find_user_by_discord_id(request.discord_id)
         .await
-        .is_ok()
     {
+        warn!(user = ?user, "existing user found");
+
         return Err(YuhuhError::BadRequest(format!(
             "User with Discord ID {} already exists",
             request.discord_id,

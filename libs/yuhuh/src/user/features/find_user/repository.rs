@@ -1,9 +1,9 @@
-//! old repository which had
-//! working async traits with
-//! axum
+//! Find user repository module
+//!
+//! This module provides functionality for finding users from the database.
 
 use async_trait::async_trait;
-use sqlx::{PgPool, Postgres};
+use sqlx::PgPool;
 use tracing::{debug, error, info};
 use uuid::Uuid;
 
@@ -70,13 +70,13 @@ pub struct DummyFindUserRepository {}
 
 #[async_trait]
 impl FindUserRepository for DummyFindUserRepository {
-    async fn find_user_by_id(&self, id: &Uuid) -> Result<Option<User>, YuhuhError> {
+    async fn find_user_by_id(&self, _id: &Uuid) -> Result<Option<User>, YuhuhError> {
         panic!(
             "DummyFindUserRepository::find_user_by_id called - this should be unreachable in tests"
         );
     }
 
-    async fn find_user_by_discord_id(&self, id: i64) -> Result<Option<User>, YuhuhError> {
+    async fn find_user_by_discord_id(&self, _id: i64) -> Result<Option<User>, YuhuhError> {
         panic!(
             "DummyFindUserRepository::find_user_by_discord_id called - this should be unreachable in tests"
         );
