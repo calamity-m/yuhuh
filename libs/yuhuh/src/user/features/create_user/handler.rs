@@ -65,10 +65,10 @@ pub async fn post_create_discord_user(
     Json(request): Json<CreateDiscordUserRequest>,
 ) -> Result<Json<CreateDiscordUserResponse>, YuhuhError> {
     // Check if a user with this Discord ID already exists
-    if let Ok(Some(user)) = user_state
+    if let Some(user) = user_state
         .find_user_repo
         .find_user_by_discord_id(request.discord_id)
-        .await
+        .await?
     {
         warn!(user = ?user, "existing user found");
 
