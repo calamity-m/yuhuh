@@ -27,7 +27,7 @@ impl FromRef<AppState> for Arc<UserState> {
 pub fn create_app_state(config: &Config, db: PgPool) -> AppState {
     let app_state = AppState {
         config: Arc::new(config.clone()),
-        user: Arc::new(create_user_state(db)),
+        user: Arc::new(UserState::new(db.clone())),
     };
 
     debug!("created app state");

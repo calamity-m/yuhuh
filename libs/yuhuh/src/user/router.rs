@@ -1,9 +1,17 @@
-use axum::{Router, routing::get};
+use axum::{
+    Router,
+    routing::{get, post},
+};
 
-use crate::{state::AppState, user::features::find_user};
+use crate::{
+    state::AppState,
+    user::features::{create_user, find_user},
+};
 
 pub fn user_router() -> Router<AppState> {
-    Router::new().route("/user", get(find_user::handler))
+    Router::new()
+        .route("/user", get(find_user::handler))
+        .route("/user/discord", post(create_user::post_create_discord_user))
 }
 
 #[cfg(test)]
