@@ -71,10 +71,14 @@ pub struct DummyFindUserRepository {}
 #[async_trait]
 impl FindUserRepository for DummyFindUserRepository {
     async fn find_user_by_id(&self, id: &Uuid) -> Result<Option<User>, YuhuhError> {
-        todo!()
+        panic!(
+            "DummyFindUserRepository::find_user_by_id called - this should be unreachable in tests"
+        );
     }
 
     async fn find_user_by_discord_id(&self, id: i64) -> Result<Option<User>, YuhuhError> {
-        todo!()
+        panic!(
+            "DummyFindUserRepository::find_user_by_discord_id called - this should be unreachable in tests"
+        );
     }
 }
