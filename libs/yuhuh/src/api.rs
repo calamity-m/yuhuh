@@ -25,6 +25,7 @@ use crate::user::router::user_router;
     ),
     nest(
         (path="/api/v1/", api = crate::user::router::UserApi),
+        (path="/api/v1/", api = crate::health::HealthApi)
     )
 )]
 struct ApiDoc;

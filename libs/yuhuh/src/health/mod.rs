@@ -1,19 +1,21 @@
 use axum::{Json, Router, response::IntoResponse, routing::get};
-use serde::Serialize;
+use serde_json::json;
+use tracing::instrument;
+use utoipa::OpenApi;
 
 use crate::state::AppState;
 
-#[derive(Serialize)]
-struct Health {
-    status: String,
+#[derive(OpenApi)]
+#[openapi(paths(handler))]
+pub struct HealthApi;
+
+/// Health check
+#[utoipa::path(get, tag = "health", path = "health")]
+#[instrument]
+pub(crate) async fn handler() -> impl IntoResponse {
+    Json(json!({"status": "ok"}))
 }
 
 pub fn health_router() -> Router<AppState> {
-    async fn handler() -> impl IntoResponse {
-        Json(Health {
-            status: "up".to_string(),
-        })
-    }
-
     Router::new().route("/health", get(handler))
 }
