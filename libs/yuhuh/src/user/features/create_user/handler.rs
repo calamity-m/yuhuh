@@ -85,20 +85,17 @@ pub async fn post_create_discord_user(
         )));
     }
 
-    // Convert HTTP request to repository request format
-    let repo_request = super::CreateDBDiscordUserRequest {
-        discord_id: request.discord_id,
-        discord_username: request.discord_username,
-        personalisation: request.personalisation,
-        contact_name: request.contact_name,
-        contact_email: request.contact_email,
-        timezone: request.timezone,
-    };
-
     // Create the user through the repository layer
     let created_user_id = user_state
         .create_user_repo
-        .create_discord_user(repo_request)
+        .create_discord_user(super::CreateDBDiscordUserRequest {
+            discord_id: request.discord_id,
+            discord_username: request.discord_username,
+            personalisation: request.personalisation,
+            contact_name: request.contact_name,
+            contact_email: request.contact_email,
+            timezone: request.timezone,
+        })
         .await?;
 
     info!(

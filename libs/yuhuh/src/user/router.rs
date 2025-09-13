@@ -17,6 +17,10 @@ use crate::{
 #[openapi(paths(find_user::handler, create_user::post_create_discord_user))]
 pub struct UserApi;
 
+// =============================================================================
+// Router
+// =============================================================================
+
 pub fn user_router() -> Router<AppState> {
     Router::new()
         .route("/users", get(find_user::handler))
