@@ -17,7 +17,7 @@ use crate::error::YuhuhError;
 /// Contains all the necessary information to create both a user record and
 /// a linked Discord user record in the database.
 #[derive(Debug)]
-pub struct CreateDiscordUserRequest {
+pub struct CreateDBDiscordUserRequest {
     /// Discord user ID (snowflake as i64)
     pub discord_id: i64,
     /// Discord username
@@ -75,7 +75,7 @@ pub trait CreateUserRepository: std::fmt::Debug + Send + Sync + 'static {
     /// - The transaction fails to commit
     async fn create_discord_user(
         &self,
-        request: CreateDiscordUserRequest,
+        request: CreateDBDiscordUserRequest,
     ) -> Result<Uuid, YuhuhError>;
 }
 
@@ -98,7 +98,7 @@ pub struct CreateUserRepositoryImpl {
 impl CreateUserRepository for CreateUserRepositoryImpl {
     async fn create_discord_user(
         &self,
-        request: CreateDiscordUserRequest,
+        request: CreateDBDiscordUserRequest,
     ) -> Result<Uuid, YuhuhError> {
         // Begin a database transaction to ensure atomicity
         let mut transaction = self.db.begin().await?;
@@ -173,7 +173,7 @@ pub struct DummyCreateUserRepository {}
 impl CreateUserRepository for DummyCreateUserRepository {
     async fn create_discord_user(
         &self,
-        _request: CreateDiscordUserRequest,
+        _request: CreateDBDiscordUserRequest,
     ) -> Result<Uuid, YuhuhError> {
         panic!(
             "DummyCreateUserRepository::create_discord_user called - this should be unreachable in tests"

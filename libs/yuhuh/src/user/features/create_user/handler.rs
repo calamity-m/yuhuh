@@ -6,16 +6,14 @@
 
 use std::sync::Arc;
 
-use axum::{Json, extract::State};
+use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
 use tracing::{info, instrument, warn};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::{
-    error::YuhuhError,
-    user::{features::create_user, state::UserState},
-};
+use crate::{error::YuhuhError, user::state::UserState};
 
 // =============================================================================
 // Request/Response Types
@@ -26,7 +24,7 @@ use crate::{
 /// This struct represents the JSON payload expected by the POST endpoint
 /// for creating Discord users. It includes validation constraints to ensure
 /// data integrity before processing.
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CreateDiscordUserRequest {
     /// Discord user ID (snowflake as i64)
     pub discord_id: i64,
@@ -47,7 +45,7 @@ pub struct CreateDiscordUserRequest {
 ///
 /// Contains the UUID of the newly created user that can be used
 /// for subsequent API calls or client-side operations.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct CreateDiscordUserResponse {
     /// The UUID of the newly created user
     pub user_id: Uuid,
@@ -58,12 +56,21 @@ pub struct CreateDiscordUserResponse {
 // =============================================================================
 
 /// Creates a new Discord user with associated user data.
+#[utoipa::path(
+        post,
+        path = "users/create/discord",
+        tag = "create user",
+        responses(
+            (status = 201, description = "Discord user created successfully", body = CreateDiscordUserResponse),
+            (status = 400, description = "User exists")
+        )
+    )]
 #[axum::debug_handler]
 #[instrument]
 pub async fn post_create_discord_user(
     State(user_state): State<Arc<UserState>>,
     Json(request): Json<CreateDiscordUserRequest>,
-) -> Result<Json<CreateDiscordUserResponse>, YuhuhError> {
+) -> Result<(StatusCode, Json<CreateDiscordUserResponse>), YuhuhError> {
     // Check if a user with this Discord ID already exists
     if let Some(user) = user_state
         .find_user_repo
@@ -79,7 +86,7 @@ pub async fn post_create_discord_user(
     }
 
     // Convert HTTP request to repository request format
-    let repo_request = create_user::repository::CreateDiscordUserRequest {
+    let repo_request = super::CreateDBDiscordUserRequest {
         discord_id: request.discord_id,
         discord_username: request.discord_username,
         personalisation: request.personalisation,
@@ -100,7 +107,10 @@ pub async fn post_create_discord_user(
         "Successfully created Discord user"
     );
 
-    Ok(Json(CreateDiscordUserResponse {
-        user_id: created_user_id,
-    }))
+    Ok((
+        StatusCode::CREATED,
+        Json(CreateDiscordUserResponse {
+            user_id: created_user_id,
+        }),
+    ))
 }

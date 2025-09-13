@@ -8,6 +8,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, error, info, instrument};
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 use crate::{
@@ -20,7 +21,7 @@ use crate::{
 // ============================================================================
 
 /// Request parameters for finding a user.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct FindUserRequest {
     /// Optional user ID to search by.
     pub id: Option<Uuid>,
@@ -29,7 +30,7 @@ pub struct FindUserRequest {
 }
 
 /// Response containing user information.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct FindUserResponse {
     pub id: Uuid,
     pub personalisation: Option<String>,
@@ -67,9 +68,9 @@ impl From<User> for FindUserResponse {
     }
 }
 
-// ============================================================================
-// Handler Functions
-// ============================================================================
+// =============================================================================
+// HTTP Handlers
+// =============================================================================
 
 /// Handles a request to find a user by ID or Discord ID.
 ///
@@ -85,6 +86,15 @@ impl From<User> for FindUserResponse {
 /// * `Ok(Json<FindUserResponse>)` - User found and returned as JSON
 /// * `Err(YuhuhError::NotFound)` - If no user exists with the given ID
 /// * `Err(YuhuhError)` - Error occurred during lookup or validation
+/// 
+#[utoipa::path(
+    get, 
+    path = "users", 
+    tag = "find user", 
+    params(FindUserRequest),
+    responses(
+        (status = 200, description = "Found user", body = FindUserResponse)
+))]
 #[instrument]
 pub async fn handler(
     State(user_state): State<Arc<UserState>>,

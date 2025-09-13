@@ -2,16 +2,28 @@ use axum::{
     Router,
     routing::{get, post},
 };
+use utoipa::OpenApi;
 
 use crate::{
     state::AppState,
     user::features::{create_user, find_user},
 };
 
+// =============================================================================
+// API Docs
+// =============================================================================
+
+#[derive(OpenApi)]
+#[openapi(paths(find_user::handler, create_user::post_create_discord_user))]
+pub struct UserApi;
+
 pub fn user_router() -> Router<AppState> {
     Router::new()
-        .route("/user", get(find_user::handler))
-        .route("/user/discord", post(create_user::post_create_discord_user))
+        .route("/users", get(find_user::handler))
+        .route(
+            "/users/create/discord",
+            post(create_user::post_create_discord_user),
+        )
 }
 
 #[cfg(test)]

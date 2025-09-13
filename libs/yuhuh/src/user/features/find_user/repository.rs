@@ -25,18 +25,35 @@ impl FindUserRepository for FindUserRepositoryImpl {
     async fn find_user_by_id(&self, id: &Uuid) -> Result<Option<User>, YuhuhError> {
         info!(id = ?id, "finding user by id");
 
-        let user: Option<User> = sqlx::query_as(include_str!("queries/find_user_by_id.sql"))
-            .bind(id)
-            .fetch_optional(&self.db)
-            .await
-            .map_err(|e| {
-                error!(error = ?e, user_id = ?id, "database error while finding user");
+        let user: Option<User> = sqlx::query_as(
+            r#"
+            SELECT
+                u.user_id,
+                u.personalisation,
+                u.contact_email,
+                u.contact_name,
+                u.created_at,
+                u.updated_at,
+                u.timezone,
+                to_json(du.*) AS discord_user
+            FROM
+                users u
+                LEFT JOIN discord_users du ON u.user_id = du.user_id
+            WHERE
+                u.user_id = $1
+            "#,
+        )
+        .bind(id)
+        .fetch_optional(&self.db)
+        .await
+        .map_err(|e| {
+            error!(error = ?e, user_id = ?id, "database error while finding user");
 
-                YuhuhError::ContextError {
-                    context: "failed to find user".to_string(),
-                    error: Box::new(e),
-                }
-            })?;
+            YuhuhError::ContextError {
+                context: "failed to find user".to_string(),
+                error: Box::new(e),
+            }
+        })?;
 
         debug!(user_id = ?user, "reponse from query");
         Ok(user)
@@ -45,19 +62,35 @@ impl FindUserRepository for FindUserRepositoryImpl {
     async fn find_user_by_discord_id(&self, id: i64) -> Result<Option<User>, YuhuhError> {
         info!(id = ?id, "finding user by id");
 
-        let user: Option<User> =
-            sqlx::query_as(include_str!("queries/find_user_by_discord_id.sql"))
-                .bind(id)
-                .fetch_optional(&self.db)
-                .await
-                .map_err(|e| {
-                    error!(error = ?e, user_id = ?id, "database error while finding user");
+        let user: Option<User> = sqlx::query_as(
+            r#"
+            SELECT
+                u.user_id,
+                u.personalisation,
+                u.contact_email,
+                u.contact_name,
+                u.created_at,
+                u.updated_at,
+                u.timezone,
+                to_json(du.*) AS discord_user
+            FROM
+                users u
+                INNER JOIN discord_users du ON u.user_id = du.user_id
+            WHERE
+                du.discord_id = $1
+            "#,
+        )
+        .bind(id)
+        .fetch_optional(&self.db)
+        .await
+        .map_err(|e| {
+            error!(error = ?e, user_id = ?id, "database error while finding user");
 
-                    YuhuhError::ContextError {
-                        context: "failed to find user".to_string(),
-                        error: Box::new(e),
-                    }
-                })?;
+            YuhuhError::ContextError {
+                context: "failed to find user".to_string(),
+                error: Box::new(e),
+            }
+        })?;
 
         debug!(user_id = ?user, "reponse from query");
         Ok(user)

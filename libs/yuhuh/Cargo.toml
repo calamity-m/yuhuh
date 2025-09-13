@@ -4,30 +4,48 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+
+# Monorepo
 log.workspace = true
 middleware.workspace = true
 testutil.workspace = true
-anyhow = { workspace = true, features = ["backtrace"] }
-axum = { workspace = true, features = ["macros"] }
+
+# General
 clap = { workspace = true, features = ["derive", "env"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror ={ workspace = true }
-tokio = { workspace = true, features = ["full", "sync"] }
+anyhow = { workspace = true, features = ["backtrace"] }
+
+# Monitoring
 tracing = { workspace = true }
 tracing-attributes = "0.1.30"
 tracing-subscriber = { workspace = true, features = ["json"] }
+
+# Async
+tokio = { workspace = true, features = ["full", "sync"] }
+async-trait = { workspace = true }
+
+# Http
+axum = { workspace = true, features = ["macros"] }
 tower = { workspace = true }
 tower-http = { workspace = true, features = ["request-id", "trace"] }
 validator = { workspace = true, features = ["derive"] }
+
+# Data types
 uuid = { workspace = true, features = ["serde", "v4", "v7"] }
 chrono = { workspace = true, features = ["serde"] }
-sqlx = { workspace = true, features = ["chrono", "postgres", "runtime-tokio", "tls-native-tls"] }
-async-trait = { workspace = true }
-pretty_assertions = { workspace = true }
 
+# Database dependencies
+sqlx = { workspace = true, features = ["chrono", "postgres", "runtime-tokio", "tls-native-tls"] }
+
+# Utoipa dependencies
+utoipa = { workspace = true, features = ["axum_extras", "chrono", "debug", "uuid", "preserve_order", "preserve_path_order"] }
+utoipa-scalar.workspace = true
+utoipa-axum.workspace = true
 
 [dev-dependencies]
 once_cell = "1.21.3"
 http-body-util = "0.1.3"
 tower = { version = "0.5.2", features = ["util"] }
+pretty_assertions = { workspace = true }

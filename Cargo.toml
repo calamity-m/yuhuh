@@ -31,6 +31,9 @@ validator = { version = "0.20.0", features = ["derive"] }
 uuid = { version = "1.18.0", features = ["serde", "v4", "v7"] }
 chrono = { version = "0.4.41", features = ["serde"] }
 sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio", "tls-native-tls", "derive", "migrate", "uuid", "chrono", "json", "macros"] }
+utoipa = { version = "5.4.0" }
 async-trait = "0.1.89"
 pretty_assertions = "1.4.1"
 dotenvy = "0.15.7"
+utoipa-scalar = { version = "0.3.0", features = ["axum"] }
+utoipa-axum = "0.2.0"

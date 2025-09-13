@@ -1,5 +1,5 @@
 mod handler;
 mod repository;
 
-pub use handler::post_create_discord_user;
+pub use handler::*;
 pub use repository::*;
