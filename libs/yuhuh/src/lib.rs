@@ -1,6 +1,7 @@
 pub mod api;
 pub mod config;
 pub mod error;
+pub mod food;
 pub mod health;
 pub mod migrations;
 pub mod state;

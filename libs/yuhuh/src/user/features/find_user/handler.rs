@@ -96,7 +96,7 @@ impl From<User> for FindUserResponse {
         (status = 200, description = "Found user", body = FindUserResponse)
 ))]
 #[instrument]
-pub async fn handler(
+pub async fn find_user(
     State(user_state): State<Arc<UserState>>,
     Query(request): Query<FindUserRequest>,
 ) -> Result<Json<FindUserResponse>, YuhuhError> {

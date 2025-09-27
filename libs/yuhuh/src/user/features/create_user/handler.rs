@@ -1,8 +1,6 @@
 //! user creation HTTP handler
 //!
-//! This module provides HTTP endpoints for creating users. It handles
-//! request validation, duplicate checking, and user creation through the
-//! repository layer.
+//! This module provides HTTP endpoints for creating users.
 
 use std::sync::Arc;
 
@@ -67,7 +65,7 @@ pub struct CreateDiscordUserResponse {
     )]
 #[axum::debug_handler]
 #[instrument]
-pub async fn post_create_discord_user(
+pub async fn create_discord_user(
     State(user_state): State<Arc<UserState>>,
     Json(request): Json<CreateDiscordUserRequest>,
 ) -> Result<(StatusCode, Json<CreateDiscordUserResponse>), YuhuhError> {

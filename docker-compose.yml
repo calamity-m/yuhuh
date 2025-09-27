@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:18rc1-alpine3.22
+    image: postgres:18
     container_name: postgres-yuhuh
     restart: always
     environment:
