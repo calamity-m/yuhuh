@@ -72,7 +72,7 @@ impl From<User> for FindUserResponse {
 // HTTP Handlers
 // =============================================================================
 
-/// Handles a request to find a user by ID or Discord ID.
+/// Find users.
 ///
 /// This endpoint extracts query parameters and application state,
 /// attempts to look up the user in the repository, and returns

@@ -61,7 +61,7 @@ impl NewFoodEntry {
 // HTTP Handlers
 // =============================================================================
 
-/// Creates a new food entry with associated user data.
+/// Create food entries for a user
 #[utoipa::path(
         post,
         path = "food/create",

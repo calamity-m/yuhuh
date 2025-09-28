@@ -98,6 +98,7 @@ impl From<&FoodEntry> for FoundFoodRecord {
 // HTTP Handlers
 // =============================================================================
 
+/// Find food entries for a user
 #[utoipa::path(
     get,
     path = "food", 

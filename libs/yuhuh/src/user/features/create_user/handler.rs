@@ -53,7 +53,7 @@ pub struct CreateDiscordUserResponse {
 // HTTP Handlers
 // =============================================================================
 
-/// Creates a new Discord user with associated user data.
+/// Create user from discord base.
 #[utoipa::path(
         post,
         path = "users/create/discord",
