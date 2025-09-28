@@ -57,7 +57,7 @@ pub struct CreateDiscordUserResponse {
 #[utoipa::path(
         post,
         path = "users/create/discord",
-        tag = "create user",
+        tag = "users",
         responses(
             (status = 201, description = "Discord user created successfully", body = CreateDiscordUserResponse),
             (status = 400, description = "User exists")

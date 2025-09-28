@@ -90,7 +90,7 @@ impl From<User> for FindUserResponse {
 #[utoipa::path(
     get,
     path = "users", 
-    tag = "find user", 
+    tag = "users", 
     params(FindUserRequest),
     responses(
         (status = 200, description = "Found user", body = FindUserResponse)
