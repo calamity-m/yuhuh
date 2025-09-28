@@ -37,7 +37,7 @@ pub struct FindFoodEntryRequest {
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct FoodEntryRecord {
-    pub descriptipn: String,
+    pub description: String,
     pub calories: Option<f32>,
     pub carbs: Option<f32>,
     pub protein: Option<f32>,
@@ -75,7 +75,7 @@ pub struct FindFoodEntryResponse {
 impl From<&FoodEntry> for FoodEntryRecord {
     fn from(value: &FoodEntry) -> Self {
         FoodEntryRecord {
-            descriptipn: value.description.clone(),
+            description: value.description.clone(),
             calories: value.calories,
             carbs: value.carbs,
             protein: value.protein,
@@ -101,6 +101,8 @@ pub async fn find_food_entry(
     State(food_state): State<Arc<FoodState>>,
     Query(request): Query<FindFoodEntryRequest>,
 ) -> Result<(StatusCode, Json<FindFoodEntryResponse>), YuhuhError> {
+    debug!("entering find_food_entry");
+
     let offset = request.offset.unwrap_or(0);
     let limit = request.limit.unwrap_or(10000);
     debug!(offset=?offset, limit=?limit, "calculated offset and limit");
