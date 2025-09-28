@@ -4,10 +4,7 @@ use sqlx::PgPool;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::{
-    error::YuhuhError,
-    food::model::{FoodEntry, NewFoodEntry},
-};
+use crate::{error::YuhuhError, food::model::FoodEntry};
 
 // =============================================================================
 // Traits
@@ -15,7 +12,7 @@ use crate::{
 
 #[async_trait]
 pub trait CreateFoodEntryRepository: std::fmt::Debug + Send + Sync + 'static {
-    async fn create_food_entries(&self, entries: Vec<NewFoodEntry>) -> Result<(), YuhuhError>;
+    async fn create_food_entries(&self, entries: Vec<FoodEntry>) -> Result<(), YuhuhError>;
 }
 
 // =============================================================================
@@ -35,7 +32,7 @@ impl CreateFoodEntryRepositoryImpl {
 
 #[async_trait]
 impl CreateFoodEntryRepository for CreateFoodEntryRepositoryImpl {
-    async fn create_food_entries(&self, entries: Vec<NewFoodEntry>) -> Result<(), YuhuhError> {
+    async fn create_food_entries(&self, entries: Vec<FoodEntry>) -> Result<(), YuhuhError> {
         if entries.is_empty() {
             error!("create_food_entries received an empty vec");
 

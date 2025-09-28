@@ -24,6 +24,10 @@ use crate::{
     food::{model::FoodEntry, state::FoodState},
 };
 
+// ============================================================================
+// HTTP Request types
+// ============================================================================
+
 /// Request parameters for finding a user.
 #[derive(Debug, Deserialize, IntoParams)]
 pub struct FindFoodEntryRequest {
@@ -35,13 +39,18 @@ pub struct FindFoodEntryRequest {
     pub logged_after_date: Option<DateTime<Utc>>,
 }
 
+// ============================================================================
+// HTTP Responsed types
+// ============================================================================
+
 #[derive(Debug, Serialize, ToSchema)]
-pub struct FoodEntryRecord {
+pub struct FoundFoodRecord {
     pub description: String,
     pub calories: Option<f32>,
     pub carbs: Option<f32>,
     pub protein: Option<f32>,
     pub fats: Option<f32>,
+    pub logged_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -63,7 +72,7 @@ pub struct MacrosResult {
 #[derive(Debug, Serialize, ToSchema)]
 pub struct FindFoodEntryResponse {
     pub found_food_entries: u32,
-    pub food_entries: Vec<FoodEntryRecord>,
+    pub food_entries: Vec<FoundFoodRecord>,
     pub calories_result: CaloriesResult,
     pub macros_result: MacrosResult,
 }
@@ -72,14 +81,15 @@ pub struct FindFoodEntryResponse {
 // Trait Implementations
 // ============================================================================
 
-impl From<&FoodEntry> for FoodEntryRecord {
+impl From<&FoodEntry> for FoundFoodRecord {
     fn from(value: &FoodEntry) -> Self {
-        FoodEntryRecord {
+        FoundFoodRecord {
             description: value.description.clone(),
             calories: value.calories,
             carbs: value.carbs,
             protein: value.protein,
             fats: value.fats,
+            logged_at: value.created_at,
         }
     }
 }
@@ -91,7 +101,7 @@ impl From<&FoodEntry> for FoodEntryRecord {
 #[utoipa::path(
     get,
     path = "food", 
-    tag = "find food", 
+    tag = "food", 
     params(FindFoodEntryRequest),
     responses(
         (status = 200, description = "Found food entries", body = FindFoodEntryResponse)
@@ -130,7 +140,7 @@ pub async fn find_food_entry(
         food_entries_without_protein: 0,
         food_entries_without_fats: 0,
     };
-    let mut mapped_food_records: Vec<FoodEntryRecord> = Vec::with_capacity(food_records.len());
+    let mut mapped_food_records: Vec<FoundFoodRecord> = Vec::with_capacity(food_records.len());
 
     food_records.iter().for_each(|fr| {
         if let Some(calories) = fr.calories {
@@ -157,7 +167,7 @@ pub async fn find_food_entry(
             macros_result.food_entries_without_fats += 1;
         }
 
-        mapped_food_records.push(FoodEntryRecord::from(fr));
+        mapped_food_records.push(FoundFoodRecord::from(fr));
     });
 
     let response = Json(FindFoodEntryResponse {

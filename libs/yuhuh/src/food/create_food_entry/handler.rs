@@ -8,31 +8,26 @@ use axum::{Json, extract::State, http::StatusCode};
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use tracing::{debug, instrument};
-use tracing_subscriber::field::debug;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
     error::YuhuhError,
-    food::{
-        model::{FoodEntry, NewFoodEntry},
-        state::FoodState,
-    },
-    user,
+    food::{model::FoodEntry, state::FoodState},
 };
 
 // ============================================================================
-// Request/Response Types
+// HTTP Request Types
 // ============================================================================
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct CreateFoodEntryRequest {
     pub user_id: Uuid,
-    pub food_entries: Vec<FoodEntryRequest>,
+    pub food_entries: Vec<NewFoodEntry>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
-pub struct FoodEntryRequest {
+pub struct NewFoodEntry {
     pub description: String,
     pub calories: Option<f32>,
     pub carbs: Option<f32>,
@@ -46,9 +41,10 @@ pub struct FoodEntryRequest {
 // Implementations
 // ============================================================================
 
-impl FoodEntryRequest {
-    pub fn into_new_food_entry(&self, user_id: Uuid) -> NewFoodEntry {
-        NewFoodEntry {
+impl NewFoodEntry {
+    pub fn into_food_entry(&self, user_id: Uuid) -> FoodEntry {
+        FoodEntry {
+            food_record_id: None,
             user_id,
             description: self.description.clone(),
             calories: self.calories,
@@ -69,7 +65,7 @@ impl FoodEntryRequest {
 #[utoipa::path(
         post,
         path = "food/create",
-        tag = "create food entry",
+        tag = "food",
         responses(
             (status = 201, description = "food entry created successfully"),
         )
@@ -82,10 +78,10 @@ pub async fn create_food_entry(
 ) -> Result<StatusCode, YuhuhError> {
     debug!("entering create_food_entry");
 
-    let food_entries: Vec<NewFoodEntry> = request
+    let food_entries: Vec<FoodEntry> = request
         .food_entries
         .iter()
-        .map(|f| f.into_new_food_entry(request.user_id))
+        .map(|f| f.into_food_entry(request.user_id))
         .collect();
 
     debug!(food_entries=?food_entries, "food entries mapped");
