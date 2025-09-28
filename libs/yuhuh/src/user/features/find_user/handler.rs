@@ -86,9 +86,9 @@ impl From<User> for FindUserResponse {
 /// * `Ok(Json<FindUserResponse>)` - User found and returned as JSON
 /// * `Err(YuhuhError::NotFound)` - If no user exists with the given ID
 /// * `Err(YuhuhError)` - Error occurred during lookup or validation
-/// 
+///
 #[utoipa::path(
-    get, 
+    get,
     path = "users", 
     tag = "find user", 
     params(FindUserRequest),
