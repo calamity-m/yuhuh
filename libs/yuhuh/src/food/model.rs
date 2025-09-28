@@ -14,3 +14,15 @@ pub struct FoodEntry {
     pub user_id: Uuid,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct NewFoodEntry {
+    pub user_id: Uuid,
+    pub description: String,
+    pub calories: Option<f32>,
+    pub carbs: Option<f32>,
+    pub protein: Option<f32>,
+    pub fats: Option<f32>,
+    pub micronutrients: Option<serde_json::Value>,
+    pub created_at: DateTime<Utc>,
+}

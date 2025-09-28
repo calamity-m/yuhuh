@@ -4,7 +4,10 @@ use sqlx::PgPool;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::{error::YuhuhError, food::model::FoodEntry};
+use crate::{
+    error::YuhuhError,
+    food::model::{FoodEntry, NewFoodEntry},
+};
 
 // =============================================================================
 // Traits
@@ -12,7 +15,7 @@ use crate::{error::YuhuhError, food::model::FoodEntry};
 
 #[async_trait]
 pub trait CreateFoodEntryRepository: std::fmt::Debug + Send + Sync + 'static {
-    async fn create_food_entries(&self, entries: Vec<FoodEntry>) -> Result<(), YuhuhError>;
+    async fn create_food_entries(&self, entries: Vec<NewFoodEntry>) -> Result<(), YuhuhError>;
 }
 
 // =============================================================================
@@ -32,7 +35,7 @@ impl CreateFoodEntryRepositoryImpl {
 
 #[async_trait]
 impl CreateFoodEntryRepository for CreateFoodEntryRepositoryImpl {
-    async fn create_food_entries(&self, entries: Vec<FoodEntry>) -> Result<(), YuhuhError> {
+    async fn create_food_entries(&self, entries: Vec<NewFoodEntry>) -> Result<(), YuhuhError> {
         if entries.is_empty() {
             error!("create_food_entries received an empty vec");
 
@@ -54,7 +57,6 @@ impl CreateFoodEntryRepository for CreateFoodEntryRepositoryImpl {
 
         entries.iter().for_each(|f| {
             info!(food_entry=?f, "added food entry to creation query");
-            user_id_vecs.push(f.user_id);
             description_vecs.push(f.description.clone());
             calories_vecs.push(f.calories);
             carbs_vecs.push(f.carbs);
