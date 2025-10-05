@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode};
 use chrono::{DateTime, Utc};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tracing::{debug, instrument};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -14,19 +14,20 @@ use uuid::Uuid;
 use crate::{
     error::YuhuhError,
     food::{model::FoodEntry, state::FoodState},
+    user::state::UserState,
 };
 
 // ============================================================================
 // HTTP Request Types
 // ============================================================================
 
-#[derive(Debug, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct CreateFoodEntryRequest {
     pub user_id: Uuid,
     pub food_entries: Vec<NewFoodEntry>,
 }
 
-#[derive(Debug, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct NewFoodEntry {
     pub description: String,
     pub calories: Option<f32>,
@@ -70,13 +71,22 @@ impl NewFoodEntry {
             (status = 201, description = "food entry created successfully"),
         )
     )]
-#[axum::debug_handler]
 #[instrument]
 pub async fn create_food_entry(
     State(food_state): State<Arc<FoodState>>,
+    State(user_state): State<Arc<UserState>>,
     Json(request): Json<CreateFoodEntryRequest>,
 ) -> Result<StatusCode, YuhuhError> {
     debug!("entering create_food_entry");
+
+    if (user_state
+        .find_user_repo
+        .find_user_by_id(&request.user_id)
+        .await?)
+        .is_none()
+    {
+        return Err(YuhuhError::BadRequest("user not found".to_string()));
+    }
 
     let food_entries: Vec<FoodEntry> = request
         .food_entries
@@ -92,4 +102,100 @@ pub async fn create_food_entry(
         .await?;
 
     Ok(StatusCode::CREATED)
+}
+
+#[cfg(test)]
+mod tests {
+
+    use pretty_assertions::assert_eq;
+
+    use axum::{
+        body::Body,
+        http::{self, Request, StatusCode},
+    };
+    use serde_json::json;
+    use tower::ServiceExt;
+    use uuid::uuid;
+
+    use crate::food::create_food_entry::{CreateFoodEntryRequest, NewFoodEntry};
+
+    #[tokio::test]
+    async fn create_food_entry_correctly() {
+        let (app, db) = crate::test::common::setup().await;
+
+        // Load test data into the database
+        sqlx::raw_sql(include_str!("../../migrations/test/create_food_entry.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        let request = CreateFoodEntryRequest {
+            user_id: uuid!("11111111-1111-1111-1111-111111111111"),
+            food_entries: vec![NewFoodEntry {
+                description: "new food entry".to_string(),
+                calories: Some(10.0),
+                carbs: Some(10.0),
+                protein: Some(10.0),
+                fats: Some(10.0),
+                micronutrients: Some(json!("{}")),
+                logged_at: None,
+            }],
+        };
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/food/create")
+                    .header(http::header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(
+                        serde_json::to_string(&request).expect("request is valid body"),
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+    }
+
+    #[tokio::test]
+    async fn invalid_user_returns_bad_request() {
+        let (app, db) = crate::test::common::setup().await;
+
+        // Load test data into the database
+        sqlx::raw_sql(include_str!("../../migrations/test/create_food_entry.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        let request = CreateFoodEntryRequest {
+            user_id: uuid!("11111111-5555-3333-2222-111111111111"),
+            food_entries: vec![NewFoodEntry {
+                description: "new food entry".to_string(),
+                calories: Some(10.0),
+                carbs: Some(10.0),
+                protein: Some(10.0),
+                fats: Some(10.0),
+                micronutrients: Some(json!("{}")),
+                logged_at: None,
+            }],
+        };
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/food/create")
+                    .header(http::header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(
+                        serde_json::to_string(&request).expect("request is valid body"),
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
 }
