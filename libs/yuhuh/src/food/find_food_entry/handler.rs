@@ -43,7 +43,7 @@ pub struct FindFoodEntryRequest {
 // HTTP Responsed types
 // ============================================================================
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct FoundFoodRecord {
     pub description: String,
     pub calories: Option<f32>,
@@ -53,13 +53,13 @@ pub struct FoundFoodRecord {
     pub logged_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct CaloriesResult {
     pub total_calories: f32,
     pub food_entries_without_calories: u32,
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, ToSchema)]
 pub struct MacrosResult {
     pub total_carbs: f32,
     pub total_protein: f32,
@@ -69,7 +69,7 @@ pub struct MacrosResult {
     pub food_entries_without_fats: u32,
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct FindFoodEntryResponse {
     pub found_food_entries: u32,
     pub food_entries: Vec<FoundFoodRecord>,
@@ -129,6 +129,12 @@ pub async fn find_food_entry(
         )
         .await?;
 
+    if food_records.is_empty() {
+        return Err(YuhuhError::NotFound(
+            "no food entries found for supplied user id".to_string(),
+        ));
+    }
+
     let mut calories_result = CaloriesResult {
         total_calories: 0.0,
         food_entries_without_calories: 0,
@@ -181,4 +187,160 @@ pub async fn find_food_entry(
     debug!(response=?response, "found food records");
 
     Ok((StatusCode::OK, response))
+}
+
+#[cfg(test)]
+mod tests {
+
+    use http_body_util::BodyExt;
+    use pretty_assertions::assert_eq;
+
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use tower::ServiceExt;
+
+    use crate::food::find_food_entry::{CaloriesResult, FindFoodEntryResponse, MacrosResult};
+
+    #[tokio::test]
+    async fn correct_user_food_entries_returned() {
+        let (app, db) = crate::test::common::setup().await;
+
+        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        // `Router` implements `tower::Service<Request<Body>>` so we can
+        // call it like any tower service, no need to run an HTTP server.
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri("/food?user_id=11111111-1111-1111-1111-111111111111")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        // Not found as / hosts nothing
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let dto: FindFoodEntryResponse =
+            serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
+
+        assert_eq!(dto.found_food_entries, 3);
+        assert_eq!(&dto.food_entries[0].description, "burger");
+        assert_eq!(&dto.food_entries[1].description, "burger two");
+        assert_eq!(&dto.food_entries[2].description, "burger three");
+    }
+
+    #[tokio::test]
+    async fn calculates_calories_correctly() {
+        let (app, db) = crate::test::common::setup().await;
+
+        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        // `Router` implements `tower::Service<Request<Body>>` so we can
+        // call it like any tower service, no need to run an HTTP server.
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri("/food?user_id=11111111-1111-1111-1111-111111111111")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        // Not found as / hosts nothing
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let dto: FindFoodEntryResponse =
+            serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
+
+        assert_eq!(
+            dto.calories_result,
+            CaloriesResult {
+                total_calories: 200.0,
+                food_entries_without_calories: 1
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn calculates_macros_correctly() {
+        let (app, db) = crate::test::common::setup().await;
+
+        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        // `Router` implements `tower::Service<Request<Body>>` so we can
+        // call it like any tower service, no need to run an HTTP server.
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri("/food?user_id=11111111-1111-1111-1111-111111111111")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        // Not found as / hosts nothing
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let dto: FindFoodEntryResponse =
+            serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
+
+        assert_eq!(
+            dto.macros_result,
+            MacrosResult {
+                total_carbs: 10.0,
+                total_protein: 10.0,
+                total_fats: 10.0,
+                food_entries_without_carbs: 1,
+                food_entries_without_protein: 1,
+                food_entries_without_fats: 1
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn user_not_found_handled() {
+        let (app, db) = crate::test::common::setup().await;
+
+        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        // `Router` implements `tower::Service<Request<Body>>` so we can
+        // call it like any tower service, no need to run an HTTP server.
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri("/food?user_id=55555555-5555-5555-5555-555555555555")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        // Not found as / hosts nothing
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
 }

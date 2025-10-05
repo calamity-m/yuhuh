@@ -5,6 +5,7 @@ pub mod food;
 pub mod health;
 pub mod migrations;
 pub mod state;
+mod test;
 pub mod user;
 
 use anyhow::{Context, Ok, Result};
