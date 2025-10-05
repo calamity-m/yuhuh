@@ -49,3 +49,4 @@ once_cell = "1.21.3"
 http-body-util = "0.1.3"
 tower = { version = "0.5.2", features = ["util"] }
 pretty_assertions = { workspace = true }
+url = "2.5.7"

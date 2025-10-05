@@ -130,9 +130,7 @@ pub async fn find_food_entry(
         .await?;
 
     if food_records.is_empty() {
-        return Err(YuhuhError::NotFound(
-            "no food entries found for supplied user id".to_string(),
-        ));
+        return Err(YuhuhError::NotFound("no food entries found".to_string()));
     }
 
     let mut calories_result = CaloriesResult {
@@ -192,6 +190,7 @@ pub async fn find_food_entry(
 #[cfg(test)]
 mod tests {
 
+    use chrono::Utc;
     use http_body_util::BodyExt;
     use pretty_assertions::assert_eq;
 
@@ -200,20 +199,22 @@ mod tests {
         http::{Request, StatusCode},
     };
     use tower::ServiceExt;
+    use url::form_urlencoded;
 
     use crate::food::find_food_entry::{CaloriesResult, FindFoodEntryResponse, MacrosResult};
 
+    /// Tests that food entries are returned for a specific user in descending order by logged date
     #[tokio::test]
     async fn correct_user_food_entries_returned() {
         let (app, db) = crate::test::common::setup().await;
 
+        // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
             .execute(&db)
             .await
             .expect("setup test sql ran successfully");
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
+        // Make a GET request to fetch food entries for the test user
         let response = app
             .oneshot(
                 Request::builder()
@@ -225,19 +226,22 @@ mod tests {
             .await
             .unwrap();
 
-        // Not found as / hosts nothing
         assert_eq!(response.status(), StatusCode::OK);
 
+        // Parse the response body
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let dto: FindFoodEntryResponse =
             serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
 
+        // Verify correct number of entries returned
         assert_eq!(dto.found_food_entries, 3);
-        assert_eq!(&dto.food_entries[0].description, "burger");
-        assert_eq!(&dto.food_entries[1].description, "burger two");
-        assert_eq!(&dto.food_entries[2].description, "burger three");
+        // Verify entries are sorted by date descending (newest first)
+        assert_eq!(&dto.food_entries[0].description, "burger two"); // + 1 day
+        assert_eq!(&dto.food_entries[1].description, "burger"); // - 1 day
+        assert_eq!(&dto.food_entries[2].description, "burger three"); // - 5 days
     }
 
+    /// Tests that total calories are calculated correctly from all food entries
     #[tokio::test]
     async fn calculates_calories_correctly() {
         let (app, db) = crate::test::common::setup().await;
@@ -247,8 +251,6 @@ mod tests {
             .await
             .expect("setup test sql ran successfully");
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
         let response = app
             .oneshot(
                 Request::builder()
@@ -260,13 +262,13 @@ mod tests {
             .await
             .unwrap();
 
-        // Not found as / hosts nothing
         assert_eq!(response.status(), StatusCode::OK);
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let dto: FindFoodEntryResponse =
             serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
 
+        // Verify calorie totals and count of entries missing calorie data
         assert_eq!(
             dto.calories_result,
             CaloriesResult {
@@ -276,6 +278,7 @@ mod tests {
         );
     }
 
+    /// Tests that macronutrients (carbs, protein, fats) are calculated correctly
     #[tokio::test]
     async fn calculates_macros_correctly() {
         let (app, db) = crate::test::common::setup().await;
@@ -285,8 +288,6 @@ mod tests {
             .await
             .expect("setup test sql ran successfully");
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
         let response = app
             .oneshot(
                 Request::builder()
@@ -298,13 +299,13 @@ mod tests {
             .await
             .unwrap();
 
-        // Not found as / hosts nothing
         assert_eq!(response.status(), StatusCode::OK);
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let dto: FindFoodEntryResponse =
             serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
 
+        // Verify macro totals and count of entries missing each macro
         assert_eq!(
             dto.macros_result,
             MacrosResult {
@@ -318,6 +319,119 @@ mod tests {
         );
     }
 
+    /// Tests that the logged_before_date filter correctly excludes entries after the specified date
+    #[tokio::test]
+    async fn before_filters_correctly() {
+        let (app, db) = crate::test::common::setup().await;
+
+        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        // Build URI with current timestamp to filter out future entries
+        let uri = format!(
+            "/food?user_id=11111111-1111-1111-1111-111111111111&logged_before_date={}",
+            form_urlencoded::byte_serialize(Utc::now().to_rfc3339().as_bytes()).collect::<String>()
+        );
+
+        println!("{}", uri);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri(uri)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let dto: FindFoodEntryResponse =
+            serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
+
+        // Should only return entries before current time (excludes future entry)
+        assert_eq!(dto.found_food_entries, 2);
+        assert_eq!(&dto.food_entries[0].description, "burger");
+        assert_eq!(&dto.food_entries[1].description, "burger three");
+    }
+
+    /// Tests that the logged_after_date filter correctly excludes entries before the specified date
+    #[tokio::test]
+    async fn after_filters_correctly() {
+        let (app, db) = crate::test::common::setup().await;
+
+        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        // Build URI with current timestamp to filter out past entries
+        let uri = format!(
+            "/food?user_id=11111111-1111-1111-1111-111111111111&logged_after_date={}",
+            form_urlencoded::byte_serialize(Utc::now().to_rfc3339().as_bytes()).collect::<String>()
+        );
+
+        println!("{}", uri);
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri(uri)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let dto: FindFoodEntryResponse =
+            serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
+
+        // Should only return entries after current time (only the future entry)
+        assert_eq!(dto.found_food_entries, 1);
+        assert_eq!(&dto.food_entries[0].description, "burger two");
+    }
+
+    /// Tests that pagination with offset and limit works correctly
+    #[tokio::test]
+    async fn paginates_correctly() {
+        let (app, db) = crate::test::common::setup().await;
+
+        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        // Request offset=2, limit=1 to get the third entry (ordered descending by time)
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri("/food?user_id=11111111-1111-1111-1111-111111111111&offset=2&limit=1")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let dto: FindFoodEntryResponse =
+            serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
+
+        // Should return only the third entry when skipping first two
+        assert_eq!(dto.found_food_entries, 1);
+        assert_eq!(&dto.food_entries[0].description, "burger three");
+    }
+
+    /// Tests that querying for a non-existent user returns 404 Not Found
     #[tokio::test]
     async fn user_not_found_handled() {
         let (app, db) = crate::test::common::setup().await;
@@ -327,8 +441,7 @@ mod tests {
             .await
             .expect("setup test sql ran successfully");
 
-        // `Router` implements `tower::Service<Request<Body>>` so we can
-        // call it like any tower service, no need to run an HTTP server.
+        // Request food entries for a user that doesn't exist in the database
         let response = app
             .oneshot(
                 Request::builder()
@@ -340,7 +453,6 @@ mod tests {
             .await
             .unwrap();
 
-        // Not found as / hosts nothing
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 }

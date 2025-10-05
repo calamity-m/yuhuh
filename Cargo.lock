@@ -3890,6 +3890,7 @@ dependencies = [
  "tracing",
  "tracing-attributes",
  "tracing-subscriber",
+ "url",
  "utoipa",
  "utoipa-axum",
  "utoipa-scalar",
