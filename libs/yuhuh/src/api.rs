@@ -16,17 +16,19 @@ use crate::config::Config;
 use crate::error::*;
 use crate::food::router::food_router;
 use crate::health::*;
+use crate::mood::router::mood_router;
 use crate::state::create_app_state;
 use crate::user::router::user_router;
 
 #[derive(OpenApi)]
 #[openapi(
     tags(
-        (name = "yuhuh", description = "Todo items management API")
+        (name = "yuhuh", description = "API")
     ),
     nest(
         (path="/api/v1/", api = crate::user::router::UserApi),
         (path="/api/v1/", api = crate::food::router::FoodApi),
+        (path="/api/v1/", api = crate::mood::router::MoodApi),
         (path="/api/v1/", api = crate::health::HealthApi)
     )
 )]
@@ -39,6 +41,7 @@ pub fn new_app(config: &Config, db: PgPool, global_span: Arc<Span>) -> Router {
         .merge(health_router())
         .merge(user_router())
         .merge(food_router())
+        .merge(mood_router())
         //.merge(user::user_router())
         .with_state(app_state.clone())
         .fallback(|| async {

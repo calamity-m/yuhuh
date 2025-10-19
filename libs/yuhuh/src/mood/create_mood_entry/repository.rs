@@ -1,8 +1,5 @@
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
 use sqlx::PgPool;
-use tracing::{error, info};
-use uuid::Uuid;
 
 use crate::{error::YuhuhError, mood::model::MoodEntry};
 
@@ -11,7 +8,7 @@ use crate::{error::YuhuhError, mood::model::MoodEntry};
 // =============================================================================
 
 #[async_trait]
-pub trait EnterMoodEntryRepository: std::fmt::Debug + Send + Sync + 'static {
+pub trait CreateMoodEntryRepository: std::fmt::Debug + Send + Sync + 'static {
     async fn create_mood_entries(&self, entries: Vec<MoodEntry>) -> Result<(), YuhuhError>;
 }
 
@@ -20,18 +17,18 @@ pub trait EnterMoodEntryRepository: std::fmt::Debug + Send + Sync + 'static {
 // =============================================================================
 
 #[derive(Debug)]
-pub struct EnterMoodEntryRepositoryImpl {
+pub struct CreateMoodEntryRepositoryImpl {
     pub db: PgPool,
 }
 
-impl EnterMoodEntryRepositoryImpl {
+impl CreateMoodEntryRepositoryImpl {
     pub fn new(db: PgPool) -> Self {
-        EnterMoodEntryRepositoryImpl { db }
+        CreateMoodEntryRepositoryImpl { db }
     }
 }
 
 #[async_trait]
-impl EnterMoodEntryRepository for EnterMoodEntryRepositoryImpl {
+impl CreateMoodEntryRepository for CreateMoodEntryRepositoryImpl {
     async fn create_mood_entries(&self, entries: Vec<MoodEntry>) -> Result<(), YuhuhError> {
         Err(YuhuhError::NotImplemented)
     }

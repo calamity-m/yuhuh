@@ -7,17 +7,19 @@ use crate::{
         CreateActivityEntriesRepository, CreateActivityEntriesRepositoryImpl,
     },
     food::find_food_entry::{FindFoodEntryRepository, FindFoodEntryRepositoryImpl},
-    mood::create_mood_entry::repository::{EnterMoodEntryRepository, EnterMoodEntryRepositoryImpl},
+    mood::create_mood_entry::repository::{
+        CreateMoodEntryRepository, CreateMoodEntryRepositoryImpl,
+    },
 };
 
 #[derive(Debug)]
-pub struct MoodState {
+pub struct ActivityState {
     pub create_activity_entries_repo: Arc<dyn CreateActivityEntriesRepository>,
 }
 
-impl MoodState {
+impl ActivityState {
     pub fn new(db: PgPool) -> Self {
-        MoodState {
+        ActivityState {
             create_activity_entries_repo: Arc::new(CreateActivityEntriesRepositoryImpl::new(
                 db.clone(),
             )),
