@@ -1,4 +1,4 @@
--- Food records
+-- Activity records
 create table mood_records
 (
     -- ID of the food entry

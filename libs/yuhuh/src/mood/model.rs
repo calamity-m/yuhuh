@@ -17,6 +17,7 @@ impl Mood {
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct MoodEntry {
+    pub mood_record_id: Option<Uuid>,
     pub mood: Mood,
     pub mood_description: Option<String>,
     pub user_id: Uuid,
