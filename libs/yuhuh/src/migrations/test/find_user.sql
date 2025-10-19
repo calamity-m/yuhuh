@@ -1,4 +1,4 @@
--- Create users for create_food_entry
+-- Create users for find_food_entry
 INSERT INTO
     users (
         user_id,
@@ -21,10 +21,19 @@ VALUES
     ),
     (
         '22222222-2222-2222-2222-222222222222'::uuid,
-        NULL,
+        'personalized',
         'bobat@example.com',
         'Bobat',
-        now() - interval '1 day',
-        now(),
+        '1999-09-09T09:09:09Z',
+        '2000-09-09T09:09:09Z',
         'UTC'
     );
+
+INSERT INTO
+	discord_users (discord_id, username, user_id)
+VALUES
+	(
+		100,
+		'alicediscord',
+		'11111111-1111-1111-1111-111111111111'::uuid
+	);

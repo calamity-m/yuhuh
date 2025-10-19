@@ -30,7 +30,7 @@ pub struct FindUserRequest {
 }
 
 /// Response containing user information.
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct FindUserResponse {
     pub id: Uuid,
     pub personalisation: Option<String>,
@@ -138,4 +138,90 @@ pub async fn find_user(
 
     // No valid query parameters provided
     Err(YuhuhError::BadRequest("missing query".to_string()))
+}
+
+#[cfg(test)]
+mod tests {
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use chrono::{DateTime, Utc};
+    use pretty_assertions::assert_eq;
+    use tower::ServiceExt;
+    use uuid::uuid;
+
+    use crate::user::find_user::FindUserResponse;
+    use http_body_util::BodyExt;
+
+    #[tokio::test]
+    async fn correct_user_returned_from_id() {
+        let (app, db) = crate::test::common::setup().await;
+
+        // Load test data into the database
+        sqlx::raw_sql(include_str!("../../migrations/test/find_user.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri("/users?id=22222222-2222-2222-2222-222222222222")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let dto: FindUserResponse =
+            serde_json::from_slice(&body).expect("valid FindUserResponse bytes");
+
+        let created_at: DateTime<Utc> = "1999-09-09T09:09:09Z".parse().unwrap();
+        let updated_at: DateTime<Utc> = "2000-09-09T09:09:09Z".parse().unwrap();
+
+        assert_eq!(dto.id, uuid!("22222222-2222-2222-2222-222222222222"));
+        assert_eq!(dto.discord_id, None);
+        assert_eq!(dto.discord_username, None);
+        assert_eq!(dto.personalisation, Some("personalized".to_string()));
+        assert_eq!(dto.contact_email, Some("bobat@example.com".to_string()));
+        assert_eq!(dto.contact_name, Some("Bobat".to_string()));
+        assert_eq!(dto.created_at, created_at);
+        assert_eq!(dto.updated_at, Some(updated_at));
+    }
+
+    #[tokio::test]
+    async fn correct_user_returned_from_discord_id() {
+        let (app, db) = crate::test::common::setup().await;
+
+        // Load test data into the database
+        sqlx::raw_sql(include_str!("../../migrations/test/find_user.sql"))
+            .execute(&db)
+            .await
+            .expect("setup test sql ran successfully");
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("GET")
+                    .uri("/users?discord_id=100")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let dto: FindUserResponse =
+            serde_json::from_slice(&body).expect("valid FindUserResponse bytes");
+
+        assert_eq!(dto.discord_id, Some(100));
+        assert_eq!(dto.discord_username, Some("alicediscord".to_string()));
+        assert_eq!(dto.id, uuid!("11111111-1111-1111-1111-111111111111"));
+        assert_eq!(dto.contact_name, Some("Alice".to_string()))
+    }
 }

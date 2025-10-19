@@ -2,7 +2,7 @@ use std::{fmt::Debug, sync::Arc};
 
 use sqlx::PgPool;
 
-use crate::user::features::{
+use crate::user::{
     create_user::{CreateUserRepository, CreateUserRepositoryImpl},
     find_user::{FindUserRepository, FindUserRepositoryImpl},
 };

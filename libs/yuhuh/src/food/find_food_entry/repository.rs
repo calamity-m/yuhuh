@@ -71,7 +71,7 @@ impl FindFoodEntryRepository for FindFoodEntryRepositoryImpl {
         .fetch_all(&self.db)
         .await
         .map_err(|e| {
-            error!(error = ?e, "database error while finding food recortds");
+            error!(error = ?e, "database error while finding food records");
 
             YuhuhError::DatabaseError(e)
         })?;

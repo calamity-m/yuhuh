@@ -1,6 +1,6 @@
 -- Create users for find_food_entry
 INSERT INTO
-    public.users (
+    users (
         user_id,
         personalisation,
         contact_email,
@@ -36,7 +36,7 @@ VALUES
 --
 -- Bobat should have one food entry.
 INSERT INTO
-    public.food_records (
+    food_records (
         food_record_id,
         user_id,
         created_at,

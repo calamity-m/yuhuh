@@ -6,7 +6,7 @@ use utoipa::OpenApi;
 
 use crate::{
     state::AppState,
-    user::features::{create_user, find_user},
+    user::{create_user, find_user},
 };
 
 // =============================================================================

@@ -22,7 +22,7 @@ use crate::{error::YuhuhError, user::state::UserState};
 /// This struct represents the JSON payload expected by the POST endpoint
 /// for creating Discord users. It includes validation constraints to ensure
 /// data integrity before processing.
-#[derive(Debug, Deserialize, Validate, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, Validate, ToSchema)]
 pub struct CreateDiscordUserRequest {
     /// Discord user ID (snowflake as i64)
     pub discord_id: i64,
@@ -43,7 +43,7 @@ pub struct CreateDiscordUserRequest {
 ///
 /// Contains the UUID of the newly created user that can be used
 /// for subsequent API calls or client-side operations.
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct CreateDiscordUserResponse {
     /// The UUID of the newly created user
     pub user_id: Uuid,
@@ -108,4 +108,50 @@ pub async fn create_discord_user(
             user_id: created_user_id,
         }),
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use axum::{
+        body::Body,
+        http::{self, Request, StatusCode},
+    };
+    use pretty_assertions::assert_eq;
+    use tower::ServiceExt;
+
+    use crate::user::create_user::{CreateDiscordUserRequest, CreateDiscordUserResponse};
+    use http_body_util::BodyExt;
+
+    #[tokio::test]
+    async fn correctly_create_discord_user() {
+        let (app, _) = crate::test::common::setup().await;
+
+        let request = CreateDiscordUserRequest {
+            discord_id: 1,
+            discord_username: "test".to_string(),
+            personalisation: Some("personalised_testing".to_string()),
+            contact_name: Some("testing_name".to_string()),
+            contact_email: Some("testing_email@email.com".to_string()),
+            timezone: Some("UTC".to_string()),
+        };
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/users/create/discord")
+                    .header(http::header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(
+                        serde_json::to_string(&request).expect("request is valid body"),
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let _dto: CreateDiscordUserResponse =
+            serde_json::from_slice(&body).expect("valid CreateDiscordUserResponse bytes");
+    }
 }
