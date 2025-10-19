@@ -1,4 +1,3 @@
-pub mod create_mood_entry;
+pub mod create_activity_entries;
 pub mod model;
-pub mod read_mood_entries;
 pub mod state;

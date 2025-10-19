@@ -3,6 +3,9 @@ use std::sync::Arc;
 use sqlx::PgPool;
 
 use crate::{
+    activity::create_activity_entries::repository::{
+        CreateActivityEntriesRepository, CreateActivityEntriesRepositoryImpl,
+    },
     food::find_food_entry::{FindFoodEntryRepository, FindFoodEntryRepositoryImpl},
     mood::create_mood_entry::repository::{EnterMoodEntryRepository, EnterMoodEntryRepositoryImpl},
 };
