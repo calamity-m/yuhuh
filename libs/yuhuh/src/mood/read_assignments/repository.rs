@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     error::YuhuhError,
-    mood::model::{EnergyAssignment, Limited, MoodAssignment, SleepAssignment},
+    mood::model::{EnergyAssignment, Rating, MoodAssignment, SleepAssignment},
 };
 
 // =============================================================================
@@ -16,19 +16,19 @@ pub trait ReadAssignmentRepository: std::fmt::Debug + Send + Sync + 'static {
     async fn read_mood_assigment_index(
         &self,
         user_id: &Uuid,
-        index: Limited,
+        index: Rating,
     ) -> Result<Option<MoodAssignment>, YuhuhError>;
 
     async fn read_energy_assigment_index(
         &self,
         user_id: &Uuid,
-        index: Limited,
+        index: Rating,
     ) -> Result<Option<EnergyAssignment>, YuhuhError>;
 
     async fn read_sleep_assigment_index(
         &self,
         user_id: &Uuid,
-        index: Limited,
+        index: Rating,
     ) -> Result<Option<SleepAssignment>, YuhuhError>;
 
     async fn read_mood_assignments(
@@ -67,7 +67,7 @@ impl ReadAssignmentRepository for ReadAssignmentRepositoryImpl {
     async fn read_mood_assigment_index(
         &self,
         user_id: &Uuid,
-        index: Limited,
+        index: Rating,
     ) -> Result<Option<MoodAssignment>, YuhuhError> {
         Err(YuhuhError::NotImplemented)
     }
@@ -75,7 +75,7 @@ impl ReadAssignmentRepository for ReadAssignmentRepositoryImpl {
     async fn read_energy_assigment_index(
         &self,
         user_id: &Uuid,
-        index: Limited,
+        index: Rating,
     ) -> Result<Option<EnergyAssignment>, YuhuhError> {
         Err(YuhuhError::NotImplemented)
     }
@@ -83,7 +83,7 @@ impl ReadAssignmentRepository for ReadAssignmentRepositoryImpl {
     async fn read_sleep_assigment_index(
         &self,
         user_id: &Uuid,
-        index: Limited,
+        index: Rating,
     ) -> Result<Option<SleepAssignment>, YuhuhError> {
         Err(YuhuhError::NotImplemented)
     }

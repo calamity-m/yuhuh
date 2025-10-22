@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-pub struct Limited(pub u32);
+pub struct Rating(u32);
 
-impl Limited {
-    pub fn new(value: u32) -> Option<Limited> {
+impl Rating {
+    pub fn new(value: u32) -> Option<Rating> {
         if value <= 10 { Some(Self(value)) } else { None }
     }
 
@@ -20,7 +20,7 @@ pub struct MoodAssignment {
     pub mood_assignment_id: Option<Uuid>,
     pub user_id: Uuid,
     pub val: String,
-    pub idx: Limited,
+    pub idx: Rating,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -28,7 +28,7 @@ pub struct EnergyAssignment {
     pub energy_assignment_id: Option<Uuid>,
     pub user_id: Uuid,
     pub val: String,
-    pub idx: Limited,
+    pub idx: Rating,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -36,7 +36,7 @@ pub struct SleepAssignment {
     pub sleep_assignment_id: Option<Uuid>,
     pub user_id: Uuid,
     pub val: String,
-    pub idx: Limited,
+    pub idx: Rating,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]

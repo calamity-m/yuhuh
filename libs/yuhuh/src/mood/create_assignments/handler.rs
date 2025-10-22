@@ -18,7 +18,7 @@ use validator::Validate;
 use crate::{
     error::YuhuhError,
     mood::{
-        model::{EnergyAssignment, Limited, MoodAssignment, SleepAssignment},
+        model::{EnergyAssignment, MoodAssignment, Rating, SleepAssignment},
         state::MoodState,
     },
     user::state::UserState,
@@ -110,18 +110,20 @@ pub async fn create_assignments(
 
     // Handle moods
     for requested in request.mood_assignments {
+        let rating = Rating::new(requested.index)
+            .ok_or_else(|| YuhuhError::BadRequest("mood rating out of range".to_string()))?;
         let mut m = MoodAssignment {
             mood_assignment_id: None,
             user_id: request.user_id,
             val: requested.value,
-            idx: Limited(requested.index),
+            idx: rating,
         };
 
         debug!(mood_assignment=?m, user_id=?request.user_id, "started processing mood assignment");
 
         let found = mood_state
             .read_assignments_repo
-            .read_mood_assigment_index(&request.user_id, Limited(requested.index))
+            .read_mood_assigment_index(&request.user_id, rating)
             .await?;
 
         if let Some(existing) = found {
@@ -147,18 +149,21 @@ pub async fn create_assignments(
 
     // Handle energies
     for requested in request.energy_assignemnts {
+        let rating = Rating::new(requested.index)
+            .ok_or_else(|| YuhuhError::BadRequest("energy rating out of range".to_string()))?;
+
         let mut e = EnergyAssignment {
             energy_assignment_id: None,
             user_id: request.user_id,
             val: requested.value,
-            idx: Limited(requested.index),
+            idx: rating,
         };
 
         debug!(mood_assignment=?e, user_id=?request.user_id, "started processing energy assignment");
 
         let found = mood_state
             .read_assignments_repo
-            .read_energy_assigment_index(&request.user_id, Limited(requested.index))
+            .read_energy_assigment_index(&request.user_id, rating)
             .await?;
 
         if let Some(existing) = found {
@@ -184,18 +189,21 @@ pub async fn create_assignments(
 
     // Handle sleeps
     for requested in request.sleep_assignemnts {
+        let rating = Rating::new(requested.index)
+            .ok_or_else(|| YuhuhError::BadRequest("energy rating out of range".to_string()))?;
+
         let mut s = SleepAssignment {
             sleep_assignment_id: None,
             user_id: request.user_id,
             val: requested.value,
-            idx: Limited(requested.index),
+            idx: rating,
         };
 
         debug!(mood_assignment=?s, user_id=?request.user_id, "started processing sleep assignment");
 
         let found = mood_state
             .read_assignments_repo
-            .read_sleep_assigment_index(&request.user_id, Limited(requested.index))
+            .read_sleep_assigment_index(&request.user_id, rating)
             .await?;
 
         if let Some(existing) = found {
