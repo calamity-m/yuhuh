@@ -7,7 +7,7 @@ pub struct Rating(u32);
 
 impl Rating {
     pub fn new(value: u32) -> Option<Rating> {
-        if value <= 10 { Some(Self(value)) } else { None }
+        if value <= 5 { Some(Self(value)) } else { None }
     }
 
     pub fn get(&self) -> u32 {
