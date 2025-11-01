@@ -8,15 +8,11 @@
 
 use std::sync::Arc;
 
-use axum::{
-    Json,
-    extract::{Query, State},
-    http::StatusCode,
-};
-use chrono::{DateTime, Utc};
+use axum::{Json, extract::State, http::StatusCode};
+
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, instrument};
-use utoipa::{IntoParams, ToSchema};
+use utoipa::ToSchema;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -97,10 +93,14 @@ pub async fn create_mood_entry(
         notes: request.notes,
     };
 
+    debug!(entry=?m, "creating mood entry");
+
     mood_state
         .create_mood_entry_repo
         .create_mood_entry(m)
         .await?;
+
+    debug!("successfully created mood entry");
 
     Ok(StatusCode::CREATED)
 }
