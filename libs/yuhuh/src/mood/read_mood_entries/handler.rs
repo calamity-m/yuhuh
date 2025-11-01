@@ -27,3 +27,14 @@ use crate::{
 // ============================================================================
 // HTTP Request types
 // ============================================================================
+
+/// Request parameters for finding mood entries.
+#[derive(Debug, Deserialize, IntoParams)]
+pub struct ReadMoodEntriesRequest {
+    /// user ID to search by.
+    pub user_id: Uuid,
+    pub limit: Option<u32>,
+    pub offset: Option<u32>,
+    pub logged_before_date: Option<DateTime<Utc>>,
+    pub logged_after_date: Option<DateTime<Utc>>,
+}

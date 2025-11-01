@@ -9,7 +9,7 @@ use crate::{error::YuhuhError, mood::model::MoodEntry};
 
 #[async_trait]
 pub trait CreateMoodEntryRepository: std::fmt::Debug + Send + Sync + 'static {
-    async fn create_mood_entries(&self, entries: Vec<MoodEntry>) -> Result<(), YuhuhError>;
+    async fn create_mood_entry(&self, entries: MoodEntry) -> Result<(), YuhuhError>;
 }
 
 // =============================================================================
@@ -29,7 +29,7 @@ impl CreateMoodEntryRepositoryImpl {
 
 #[async_trait]
 impl CreateMoodEntryRepository for CreateMoodEntryRepositoryImpl {
-    async fn create_mood_entries(&self, entries: Vec<MoodEntry>) -> Result<(), YuhuhError> {
+    async fn create_mood_entry(&self, entries: MoodEntry) -> Result<(), YuhuhError> {
         Err(YuhuhError::NotImplemented)
     }
 }

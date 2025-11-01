@@ -4,10 +4,7 @@ use sqlx::PgPool;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::{
-    error::YuhuhError,
-    mood::model::{MoodEntry, MoodTrend},
-};
+use crate::{error::YuhuhError, mood::model::MoodEntry};
 
 // =============================================================================
 // Traits
@@ -23,13 +20,6 @@ pub trait ReadMoodEntriesRepository: std::fmt::Debug + Send + Sync + 'static {
         limit: i64,
         offset: i64,
     ) -> Result<Vec<MoodEntry>, YuhuhError>;
-
-    async fn find_mood_trend(
-        &self,
-        user_id: &Uuid,
-        from: Option<DateTime<Utc>>,
-        to: Option<DateTime<Utc>>,
-    ) -> Result<MoodTrend, YuhuhError>;
 }
 
 // =============================================================================
@@ -57,15 +47,6 @@ impl ReadMoodEntriesRepository for ReadMoodEntriesRepositoryImpl {
         limit: i64,
         offset: i64,
     ) -> Result<Vec<MoodEntry>, YuhuhError> {
-        Err(YuhuhError::NotImplemented)
-    }
-
-    async fn find_mood_trend(
-        &self,
-        user_id: &Uuid,
-        from: Option<DateTime<Utc>>,
-        to: Option<DateTime<Utc>>,
-    ) -> Result<MoodTrend, YuhuhError> {
         Err(YuhuhError::NotImplemented)
     }
 }
