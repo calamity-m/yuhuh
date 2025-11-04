@@ -97,7 +97,12 @@ impl CreateFoodEntryRepository for CreateFoodEntryRepositoryImpl {
             &micronutrients_vecs[..] as &[Option<serde_json::Value>],
         )
         .execute(&mut *transaction)
-        .await?;
+        .await
+        .map_err(|e| {
+            error!(error = ?e, "database error while creating food entries");
+
+            YuhuhError::DatabaseError(e)
+        })?;
 
         // Commit the transaction to persist all changes
         transaction.commit().await?;

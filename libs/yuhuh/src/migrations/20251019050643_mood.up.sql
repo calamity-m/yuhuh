@@ -17,7 +17,7 @@ create table mood_records
     mood                smallint,
 
     -- Energy assignment
-    energyt             smallint,
+    energy             smallint,
 
     -- Sleep assignment
     sleep               smallint,
