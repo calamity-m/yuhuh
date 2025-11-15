@@ -6,6 +6,34 @@ use axum::{
 use serde::Deserialize;
 use thiserror::Error;
 
+#[derive(Error, Debug)]
+#[error("Failed conversion: {message}")]
+pub struct ConversionError {
+    message: String,
+}
+
+impl ConversionError {
+    pub fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+}
+
+#[derive(Error, Debug)]
+#[error("Invalid rating: {message}")]
+pub struct RatingError {
+    message: String,
+}
+
+impl RatingError {
+    pub fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+}
+
 /// A common error type that can be used throughout the API.
 ///
 /// Can be returned in a `Result` from an API handler function.
@@ -44,6 +72,12 @@ pub enum YuhuhError {
         context: String,
         error: Box<dyn std::error::Error + 'static + Send + Sync>,
     },
+
+    #[error(transparent)]
+    RatingError(#[from] RatingError),
+
+    #[error(transparent)]
+    ConversionError(#[from] ConversionError),
 }
 
 #[derive(serde::Serialize, Deserialize, Debug)]
@@ -109,6 +143,16 @@ impl YuhuhError {
 
                 context.clone()
             }
+            YuhuhError::RatingError(error) => {
+                tracing::error!(error=?error, "encountered rating error");
+
+                error.message.to_owned()
+            }
+            YuhuhError::ConversionError(error) => {
+                tracing::error!(error=?error, "encountered conversion error");
+
+                error.message.to_owned()
+            }
         }
     }
 
@@ -117,11 +161,13 @@ impl YuhuhError {
             YuhuhError::InternalServerError(_)
             | YuhuhError::DatabaseError(_)
             | YuhuhError::NotImplemented
+            | YuhuhError::ConversionError(_)
             | YuhuhError::ContextError { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             YuhuhError::Unauthorized => StatusCode::UNAUTHORIZED,
             YuhuhError::NotFound(_) => StatusCode::NOT_FOUND,
             YuhuhError::Conflict(_)
             | YuhuhError::BadRequest(_)
+            | YuhuhError::RatingError(_)
             | YuhuhError::ValidationError(_) => StatusCode::BAD_REQUEST,
         }
     }

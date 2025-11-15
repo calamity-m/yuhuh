@@ -1,10 +1,13 @@
 use async_trait::async_trait;
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use sqlx::PgPool;
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 use uuid::Uuid;
 
-use crate::{error::YuhuhError, mood::model::MoodEntry};
+use crate::{
+    error::YuhuhError,
+    mood::model::{MoodEntry, MoodEntryRow},
+};
 
 // =============================================================================
 // Traits
@@ -56,8 +59,8 @@ impl ReadMoodEntriesRepository for ReadMoodEntriesRepositoryImpl {
             "received find request for mood entries"
         );
 
-        let mood_records: Vec<MoodEntry> = sqlx::query_as!(
-            MoodEntry,
+        let records: Vec<MoodEntryRow> = sqlx::query_as!(
+            MoodEntryRow,
             r#"
             SELECT *
             FROM mood_records
@@ -84,8 +87,28 @@ impl ReadMoodEntriesRepository for ReadMoodEntriesRepositoryImpl {
             YuhuhError::DatabaseError(e)
         })?;
 
-        debug!(mood_records=?mood_records, "found mood records");
+        debug!(mood_records=?records, "found mood records");
 
-        Ok(mood_records)
+        let mut errors_found: bool = false;
+
+        let mood_entries: Vec<MoodEntry> = records
+            .into_iter()
+            .filter_map(|row| {
+                row.try_into()
+                    .inspect_err(|e| {
+                        error!(error=?e, "ecountered parsing error for mood entry");
+                        errors_found = true;
+                    })
+                    .ok()
+            })
+            .collect();
+
+        if errors_found {
+            return Err(YuhuhError::InternalServerError(
+                "internal server error occured reading mood entries".to_string(),
+            ));
+        }
+
+        Ok(mood_entries)
     }
 }
