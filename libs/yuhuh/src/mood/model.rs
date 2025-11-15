@@ -3,10 +3,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::{
-    error::{ConversionError, RatingError},
-    mood::rating::Rating,
-};
+use crate::{error::ConversionError, mood::rating::Rating};
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, sqlx::FromRow)]
 pub struct MoodEntry {

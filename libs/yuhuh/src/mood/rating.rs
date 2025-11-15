@@ -1,7 +1,7 @@
 use std::fmt;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Visitor};
-use utoipa::{PartialSchema, ToSchema};
+use utoipa::PartialSchema;
 
 use crate::error::RatingError;
 
