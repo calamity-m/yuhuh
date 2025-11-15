@@ -34,7 +34,7 @@ pub struct CreateMoodEntryRequest {
 // HTTP Request types
 // ============================================================================
 
-/// Create assignments for a user
+/// Create mood entry for a user
 #[utoipa::path(
     post,
     path = "mood", 
