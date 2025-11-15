@@ -5,7 +5,10 @@ use axum::{
 use utoipa::OpenApi;
 
 use crate::{
-    mood::create_mood_entry::{self},
+    mood::{
+        create_mood_entry::{self},
+        read_mood_entries,
+    },
     state::AppState,
 };
 
@@ -22,8 +25,6 @@ pub struct MoodApi;
 // =============================================================================
 
 pub fn mood_router() -> Router<AppState> {
-    Router::new().route(
-        "/mood/assignments",
-        post(create_mood_entry::create_mood_entry),
-    )
+    Router::new().route("/mood", post(create_mood_entry::create_mood_entry))
+    //.route("/mood", get(read_mood_entries::read_mood_entries))
 }
