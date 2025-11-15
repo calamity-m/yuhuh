@@ -2,38 +2,10 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::error::{ConversionError, RatingError};
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
-pub struct Rating(u32);
-
-impl Rating {
-    pub fn new(value: u32) -> Option<Rating> {
-        if value <= 10 { Some(Self(value)) } else { None }
-    }
-
-    pub fn get(&self) -> u32 {
-        self.0
-    }
-}
-
-impl TryFrom<i16> for Rating {
-    fn try_from(value: i16) -> Result<Self, Self::Error> {
-        match value {
-            0..=10 => Ok(Self(value as u32)),
-            11.. => Err(RatingError::new(format!(
-                "must 0 and 10, but got {} instead",
-                value
-            ))),
-            _ => Err(RatingError::new(format!(
-                "ratings cannot be negative, but got {} instead",
-                value
-            ))),
-        }
-    }
-
-    type Error = RatingError;
-}
+use crate::{
+    error::{ConversionError, RatingError},
+    mood::rating::Rating,
+};
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct MoodEntry {

@@ -35,16 +35,14 @@ impl CreateMoodEntryRepository for CreateMoodEntryRepositoryImpl {
             r#"
             INSERT INTO mood_records (
                 user_id,
-                created_at,
                 mood,
                 energy,
                 sleep,
                 notes
             )
-            VALUES ($1, $2, $3, $4, $5, $6)
+            VALUES ($1, $2, $3, $4, $5)
             "#,
             entry.user_id,
-            entry.created_at.map(|dt| dt.to_utc()),
             entry.mood.map(|r| r.get() as i16),
             entry.energy.map(|r| r.get() as i16),
             entry.sleep.map(|r| r.get() as i16),
