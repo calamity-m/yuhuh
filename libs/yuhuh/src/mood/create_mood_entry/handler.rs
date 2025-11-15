@@ -26,7 +26,7 @@ use crate::{
 };
 
 #[derive(Debug, Serialize, Deserialize, ToSchema, Validate)]
-pub struct CreateAssignmentsRequest {
+pub struct CreateMoodEntryRequest {
     pub user_id: Uuid,
     pub notes: Option<String>,
     #[validate(range(min = 0, max = 10))]
@@ -44,16 +44,16 @@ pub struct CreateAssignmentsRequest {
 /// Create assignments for a user
 #[utoipa::path(
     post,
-    path = "mood/assignments", 
+    path = "mood", 
     tag = "mood", 
     responses(
-        (status = 201, description = "assignments created successfully")
+        (status = 201, description = "mood created successfully")
 ))]
 #[instrument]
 pub async fn create_mood_entry(
     State(mood_state): State<Arc<MoodState>>,
     State(user_state): State<Arc<UserState>>,
-    Json(request): Json<CreateAssignmentsRequest>,
+    Json(request): Json<CreateMoodEntryRequest>,
 ) -> Result<StatusCode, YuhuhError> {
     request.validate()?;
 
