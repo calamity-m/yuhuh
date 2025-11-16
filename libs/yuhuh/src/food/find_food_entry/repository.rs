@@ -55,10 +55,10 @@ impl FindFoodEntryRepository for FindFoodEntryRepositoryImpl {
             FROM food_records
             WHERE user_id = $1::uuid
             AND ($2::timestamptz IS NULL
-                OR created_at <= $2::timestamptz)
+                OR logged_at <= $2::timestamptz)
             AND ($3::timestamptz IS NULL
-                OR created_at >= $3::timestamptz)
-            ORDER BY created_at DESC
+                OR logged_at >= $3::timestamptz)
+            ORDER BY logged_at DESC
             LIMIT $4
             OFFSET $5;
             "#,
