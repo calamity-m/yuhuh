@@ -15,6 +15,7 @@ pub struct MoodEntry {
     pub energy: Option<Rating>,
     pub sleep: Option<Rating>,
     pub notes: Option<String>,
+    pub logged_at: DateTime<Utc>,
 }
 
 // =============================================================================
@@ -30,6 +31,7 @@ pub struct MoodEntryRow {
     pub energy: Option<i16>,
     pub sleep: Option<i16>,
     pub notes: Option<String>,
+    pub logged_at: DateTime<Utc>,
 }
 
 impl From<MoodEntry> for MoodEntryRow {
@@ -43,6 +45,7 @@ impl From<MoodEntry> for MoodEntryRow {
             energy: value.energy.map(|r| r.get() as i16),
             sleep: value.sleep.map(|r| r.get() as i16),
             notes: value.notes,
+            logged_at: value.logged_at,
         }
     }
 }
@@ -72,6 +75,7 @@ impl TryInto<MoodEntry> for MoodEntryRow {
                 .transpose()
                 .map_err(|e| ConversionError::new(format!("failed to parse sleep - {}", e)))?,
             notes: self.notes,
+            logged_at: self.logged_at,
         };
 
         Ok(r)

@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::NaiveDateTime;
 use sqlx::PgPool;
 use tracing::{error, info};
 use uuid::Uuid;
@@ -46,7 +47,8 @@ impl CreateMoodEntryRepository for CreateMoodEntryRepositoryImpl {
         let mut mood_vecs: Vec<Option<i16>> = vec![];
         let mut energy_vecs: Vec<Option<i16>> = vec![];
         let mut sleep_vecs: Vec<Option<i16>> = vec![];
-        let mut notes_vecs: Vec<Option<String>> = vec![];
+        let notes_vecs: Vec<Option<String>> = vec![];
+        let mut logged_at_vecs: Vec<NaiveDateTime> = vec![];
 
         entries.into_iter().for_each(|m| {
             info!(mood_entrey=?m, "added mood entry to creation query");
@@ -54,6 +56,7 @@ impl CreateMoodEntryRepository for CreateMoodEntryRepositoryImpl {
             energy_vecs.push(m.sleep.map(|sleep| sleep.get() as i16));
             sleep_vecs.push(m.energy.map(|energy| energy.get() as i16));
             user_id_vecs.push(m.user_id);
+            logged_at_vecs.push(m.logged_at.naive_utc());
         });
 
         sqlx::query!(
@@ -63,21 +66,24 @@ impl CreateMoodEntryRepository for CreateMoodEntryRepositoryImpl {
                 mood, 
                 energy, 
                 sleep,
-                notes
+                notes,
+                logged_at
             )
             SELECT * FROM UNNEST(
                 $1::uuid[], 
                 $2::smallint[],
                 $3::smallint[],
                 $4::smallint[],
-                $5::text[]
+                $5::text[],
+                $6::timestamp[]
             )
             "#,
             &user_id_vecs[..],
             &mood_vecs[..] as &[Option<i16>],
             &energy_vecs[..] as &[Option<i16>],
             &sleep_vecs[..] as &[Option<i16>],
-            &notes_vecs[..] as &[Option<String>]
+            &notes_vecs[..] as &[Option<String>],
+            &logged_at_vecs[..],
         )
         .execute(&mut *transaction)
         .await

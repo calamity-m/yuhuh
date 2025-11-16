@@ -10,6 +10,7 @@ use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode};
 
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, instrument};
 use utoipa::ToSchema;
@@ -50,6 +51,7 @@ impl NewMoodEntry {
             energy: self.energy,
             sleep: self.sleep,
             notes: self.notes,
+            logged_at: Utc::now(),
         }
     }
 }
