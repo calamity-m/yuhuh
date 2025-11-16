@@ -9,14 +9,14 @@ use crate::food::{
 
 #[derive(Debug)]
 pub struct FoodState {
-    pub create_food_entry_repo: Arc<dyn CreateFoodEntryRepository>,
+    pub create_food_entries_repo: Arc<dyn CreateFoodEntryRepository>,
     pub find_food_entry_repo: Arc<dyn FindFoodEntryRepository>,
 }
 
 impl FoodState {
     pub fn new(db: PgPool) -> Self {
         FoodState {
-            create_food_entry_repo: Arc::new(CreateFoodEntryRepositoryImpl::new(db.clone())),
+            create_food_entries_repo: Arc::new(CreateFoodEntryRepositoryImpl::new(db.clone())),
             find_food_entry_repo: Arc::new(FindFoodEntryRepositoryImpl::new(db.clone())),
         }
     }

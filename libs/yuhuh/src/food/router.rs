@@ -19,7 +19,7 @@ use utoipa::OpenApi;
 #[derive(OpenApi)]
 #[openapi(paths(
     find_food_entry::find_food_entry,
-    create_food_entries::create_food_entry
+    create_food_entries::create_food_entries
 ))]
 pub struct FoodApi;
 
@@ -30,5 +30,8 @@ pub struct FoodApi;
 pub fn food_router() -> Router<AppState> {
     Router::new()
         .route("/food", get(find_food_entry::find_food_entry))
-        .route("/food/create", post(create_food_entries::create_food_entry))
+        .route(
+            "/food/create",
+            post(create_food_entries::create_food_entries),
+        )
 }

@@ -1,4 +1,4 @@
--- Create users for create_food_entry
+-- Create users for create_food_entries
 INSERT INTO
     users (
         user_id,

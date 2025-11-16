@@ -72,12 +72,12 @@ impl NewFoodEntry {
         )
     )]
 #[instrument]
-pub async fn create_food_entry(
+pub async fn create_food_entries(
     State(food_state): State<Arc<FoodState>>,
     State(user_state): State<Arc<UserState>>,
     Json(request): Json<CreateFoodEntryRequest>,
 ) -> Result<StatusCode, YuhuhError> {
-    debug!("entering create_food_entry");
+    debug!("entering create_food_entries");
 
     if (user_state
         .find_user_repo
@@ -97,7 +97,7 @@ pub async fn create_food_entry(
     debug!(food_entries=?food_entries, "food entries mapped");
 
     food_state
-        .create_food_entry_repo
+        .create_food_entries_repo
         .create_food_entries(food_entries)
         .await?;
 
@@ -120,14 +120,16 @@ mod tests {
     use crate::food::create_food_entries::{CreateFoodEntryRequest, NewFoodEntry};
 
     #[tokio::test]
-    async fn create_food_entry_correctly() {
+    async fn create_food_entries_correctly() {
         let (app, db) = crate::test::common::setup().await;
 
         // Load test data into the database
-        sqlx::raw_sql(include_str!("../../migrations/test/create_food_entry.sql"))
-            .execute(&db)
-            .await
-            .expect("setup test sql ran successfully");
+        sqlx::raw_sql(include_str!(
+            "../../migrations/test/create_food_entries.sql"
+        ))
+        .execute(&db)
+        .await
+        .expect("setup test sql ran successfully");
 
         let request = CreateFoodEntryRequest {
             user_id: uuid!("11111111-1111-1111-1111-111111111111"),
@@ -164,10 +166,12 @@ mod tests {
         let (app, db) = crate::test::common::setup().await;
 
         // Load test data into the database
-        sqlx::raw_sql(include_str!("../../migrations/test/create_food_entry.sql"))
-            .execute(&db)
-            .await
-            .expect("setup test sql ran successfully");
+        sqlx::raw_sql(include_str!(
+            "../../migrations/test/create_food_entries.sql"
+        ))
+        .execute(&db)
+        .await
+        .expect("setup test sql ran successfully");
 
         let request = CreateFoodEntryRequest {
             user_id: uuid!("11111111-5555-3333-2222-111111111111"),
