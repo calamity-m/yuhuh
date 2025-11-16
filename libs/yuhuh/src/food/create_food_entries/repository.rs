@@ -51,6 +51,7 @@ impl CreateFoodEntryRepository for CreateFoodEntryRepositoryImpl {
         let mut micronutrients_vecs: Vec<Option<serde_json::Value>> = vec![];
         let mut user_id_vecs: Vec<Uuid> = vec![];
         let mut created_at_vecs: Vec<NaiveDateTime> = vec![];
+        let mut logged_at_vecs: Vec<NaiveDateTime> = vec![];
 
         entries.iter().for_each(|f| {
             info!(food_entry=?f, "added food entry to creation query");
@@ -62,6 +63,7 @@ impl CreateFoodEntryRepository for CreateFoodEntryRepositoryImpl {
             micronutrients_vecs.push(f.micronutrients.clone());
             user_id_vecs.push(f.user_id);
             created_at_vecs.push(f.created_at.naive_utc());
+            logged_at_vecs.push(f.logged_at.naive_utc());
         });
 
         sqlx::query!(
@@ -74,7 +76,8 @@ impl CreateFoodEntryRepository for CreateFoodEntryRepositoryImpl {
                 carbs, 
                 protein, 
                 fats, 
-                micronutrients
+                micronutrients,
+                logged_at
             )
             SELECT * FROM UNNEST(
                 $1::uuid[], 
@@ -84,7 +87,8 @@ impl CreateFoodEntryRepository for CreateFoodEntryRepositoryImpl {
                 $5::real[],
                 $6::real[],
                 $7::real[],
-                $8::jsonb[]
+                $8::jsonb[],
+                $9::timestamp[]
             )
             "#,
             &user_id_vecs[..],
@@ -95,6 +99,7 @@ impl CreateFoodEntryRepository for CreateFoodEntryRepositoryImpl {
             &protein_vecs[..] as &[Option<f32>],
             &fats_vecs[..] as &[Option<f32>],
             &micronutrients_vecs[..] as &[Option<serde_json::Value>],
+            &logged_at_vecs[..],
         )
         .execute(&mut *transaction)
         .await

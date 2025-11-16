@@ -90,7 +90,7 @@ impl From<&FoodEntry> for FoundFoodRecord {
             carbs: value.carbs,
             protein: value.protein,
             fats: value.fats,
-            logged_at: value.created_at,
+            logged_at: value.logged_at,
         }
     }
 }

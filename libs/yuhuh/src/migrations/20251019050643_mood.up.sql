@@ -7,7 +7,7 @@ create table mood_records
     -- User this entry belongs to
     user_id             uuid    not null,
 
-    -- Time the mood was logged, or otherwise created into the db,
+    -- Time the mood was entry was created
     created_at          timestamptz not null default now(),
 
     -- Last time the mood was updated, pretty self explanatory
@@ -24,6 +24,9 @@ create table mood_records
 
     -- Optional notes
     notes               text,
+
+    -- Time the mood was logged, or otherwise inserted
+    logged_at      timestamptz not null default now(),
     
     CONSTRAINT fk_mood_records_user_id FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

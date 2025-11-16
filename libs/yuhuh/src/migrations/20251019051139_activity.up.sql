@@ -7,7 +7,7 @@ create table activity_records
     -- User this entry belongs to
     user_id             uuid    not null,
 
-    -- Time the activity was logged, or otherwise created into the db,
+    -- Time the activity was created
     created_at          timestamptz not null default now(),
 
     -- Last time the activity was updated, pretty self explanatory
@@ -28,6 +28,9 @@ create table activity_records
     -- For example, cycling may be an activity_type, but the info will change if someone is doing
     -- a casual group ride, versus zone 2 exercise.
     activity_info       jsonb not null,
+
+    -- Time the activity was logged, or otherwise inserted
+    logged_at      timestamptz not null default now(),
     
     CONSTRAINT fk_activity_records_user_id FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

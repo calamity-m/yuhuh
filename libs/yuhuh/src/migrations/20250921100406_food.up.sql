@@ -7,7 +7,7 @@ create table food_records
     -- User this entry belongs to
     user_id         uuid    not null,
 
-    -- Time the food was eaten, or otherwise created into the db,
+    -- Time the entry was created
     created_at      timestamptz not null default now(),
 
     -- Description of the food entry
@@ -23,6 +23,9 @@ create table food_records
 
     -- Unstructured json around micronutirents
     micronutrients  jsonb,
+
+    -- Time the food was logged, or otherwise inserted
+    logged_at      timestamptz not null default now(),
     
     CONSTRAINT fk_user_id FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

@@ -53,7 +53,8 @@ impl NewFoodEntry {
             protein: self.protein,
             fats: self.fats,
             micronutrients: self.micronutrients.clone(),
-            created_at: self.logged_at.unwrap_or(Utc::now()),
+            created_at: Utc::now(),
+            logged_at: self.logged_at.unwrap_or(Utc::now()),
         }
     }
 }

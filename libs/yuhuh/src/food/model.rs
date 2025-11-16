@@ -14,4 +14,5 @@ pub struct FoodEntry {
     pub micronutrients: Option<serde_json::Value>,
     pub user_id: Uuid,
     pub created_at: DateTime<Utc>,
+    pub logged_at: DateTime<Utc>,
 }
