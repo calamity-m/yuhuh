@@ -15,13 +15,14 @@ use axum::{
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use tracing::{debug, instrument};
+use tracing::{debug, error, instrument};
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 use crate::{
     error::YuhuhError,
     food::{model::FoodEntry, state::FoodState},
+    user::state::UserState,
 };
 
 // ============================================================================
@@ -110,9 +111,21 @@ impl From<&FoodEntry> for FoundFoodRecord {
 #[instrument]
 pub async fn find_food_entry(
     State(food_state): State<Arc<FoodState>>,
+    State(user_state): State<Arc<UserState>>,
+
     Query(request): Query<FindFoodEntryRequest>,
 ) -> Result<(StatusCode, Json<FindFoodEntryResponse>), YuhuhError> {
     debug!("entering find_food_entry");
+
+    if (user_state
+        .find_user_repo
+        .find_user_by_id(&request.user_id)
+        .await?)
+        .is_none()
+    {
+        error!(user_id = ?request.user_id, "failed to find user");
+        return Err(YuhuhError::NotFound("user not found".to_string()));
+    }
 
     let offset = request.offset.unwrap_or(0);
     let limit = request.limit.unwrap_or(10000);
@@ -128,10 +141,6 @@ pub async fn find_food_entry(
             offset.into(),
         )
         .await?;
-
-    if food_records.is_empty() {
-        return Err(YuhuhError::NotFound("no food entries found".to_string()));
-    }
 
     let mut calories_result = CaloriesResult {
         total_calories: 0.0,

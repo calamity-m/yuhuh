@@ -109,9 +109,13 @@ impl YuhuhError {
         match self {
             YuhuhError::InternalServerError(err)
             | YuhuhError::BadRequest(err)
-            | YuhuhError::NotFound(err)
             | YuhuhError::Conflict(err) => {
                 tracing::error!(error=?err, "encountered error - message: {}", err);
+
+                err.to_string()
+            }
+            YuhuhError::NotFound(err) => {
+                tracing::error!(error=?err, "encountered not found error - message: {}", err);
 
                 err.to_string()
             }
