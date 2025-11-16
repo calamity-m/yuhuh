@@ -1,7 +1,13 @@
 use async_trait::async_trait;
+use chrono::NaiveDateTime;
 use sqlx::PgPool;
+use tracing::{error, info};
+use uuid::Uuid;
 
-use crate::{activity::model::ActivityEntry, error::YuhuhError};
+use crate::{
+    activity::model::{ActivityEntry, ActivityType},
+    error::YuhuhError,
+};
 
 // =============================================================================
 // Traits
@@ -42,20 +48,20 @@ impl CreateActivityEntriesRepository for CreateActivityEntriesRepositoryImpl {
 
         let mut user_id_vecs: Vec<Uuid> = vec![];
         let mut activity_vecs: Vec<String> = vec![];
-        let mut activity_type: Vec<ActivityType> = vec![];
+        let mut activity_type: Vec<String> = vec![];
         let mut activity_info: Vec<serde_json::Value> = vec![];
 
-        entries.iter().for_each(|f| {
-            info!(food_entry=?f, "added food entry to creation query");
-            activity_vecs.push(f.activity.clone());
-            activity_type.push(f.activity_type);
+        entries.into_iter().for_each(|f| {
+            info!(food_entry=?f, "added activity entry to creation query");
+            activity_vecs.push(f.activity);
+            activity_type.push(f.activity_type.to_string());
             activity_info.push(f.activity_info);
             user_id_vecs.push(f.user_id);
         });
 
         sqlx::query!(
             r#"
-            INSERT INTO food_records (
+            INSERT INTO activity_records (
                 user_id, 
                 activity, 
                 activity_type, 
@@ -65,18 +71,18 @@ impl CreateActivityEntriesRepository for CreateActivityEntriesRepositoryImpl {
                 $1::uuid[], 
                 $2::text[],
                 $3::text[],
-                $4::jsonb[],
+                $4::jsonb[]
             )
             "#,
             &user_id_vecs[..],
             &activity_vecs[..],
             &activity_type[..],
-            &activity_info[..],
+            &activity_info[..]
         )
         .execute(&mut *transaction)
         .await
         .map_err(|e| {
-            error!(error = ?e, "database error while creating food entries");
+            error!(error = ?e, "database error while creating activity entries");
 
             YuhuhError::DatabaseError(e)
         })?;

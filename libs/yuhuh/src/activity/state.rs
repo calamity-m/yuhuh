@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use sqlx::PgPool;
 
-use crate::activity::create_activity_entry::repository::{
-    CreateActivityEntriesRepositoryImpl, CreateActivityEntryRepository,
+use crate::activity::create_activity_entries::{
+    CreateActivityEntriesRepository, CreateActivityEntriesRepositoryImpl,
 };
 
 #[derive(Debug)]
 pub struct ActivityState {
-    pub create_activity_entries_repo: Arc<dyn CreateActivityEntryRepository>,
+    pub create_activity_entries_repo: Arc<dyn CreateActivityEntriesRepository>,
 }
 
 impl ActivityState {

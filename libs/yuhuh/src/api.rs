@@ -12,6 +12,7 @@ use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_scalar::{Scalar, Servable};
 
+use crate::activity::router::activity_router;
 use crate::config::Config;
 use crate::error::*;
 use crate::food::router::food_router;
@@ -28,6 +29,7 @@ use crate::user::router::user_router;
     nest(
         (path="/api/v1/", api = crate::user::router::UserApi),
         (path="/api/v1/", api = crate::food::router::FoodApi),
+        (path="/api/v1/", api = crate::activity::router::ActivityApi),
         (path="/api/v1/", api = crate::mood::router::MoodApi),
         (path="/api/v1/", api = crate::health::HealthApi)
     )
@@ -41,6 +43,7 @@ pub fn new_app(config: &Config, db: PgPool, global_span: Arc<Span>) -> Router {
         .merge(health_router())
         .merge(user_router())
         .merge(food_router())
+        .merge(activity_router())
         .merge(mood_router())
         //.merge(user::user_router())
         .with_state(app_state.clone())
