@@ -4,14 +4,20 @@ use axum::{
 };
 use utoipa::OpenApi;
 
-use crate::{activity::create_activity_entries, state::AppState};
+use crate::{
+    activity::{create_activity_entries, read_activity_entries},
+    state::AppState,
+};
 
 // =============================================================================
 // API Docs
 // =============================================================================
 
 #[derive(OpenApi)]
-#[openapi(paths(create_activity_entries::create_activity_entries))]
+#[openapi(paths(
+    create_activity_entries::create_activity_entries,
+    read_activity_entries::read_activity_entries
+))]
 pub struct ActivityApi;
 
 // =============================================================================
@@ -19,8 +25,13 @@ pub struct ActivityApi;
 // =============================================================================
 
 pub fn activity_router() -> Router<AppState> {
-    Router::new().route(
-        "/activity",
-        post(create_activity_entries::create_activity_entries),
-    )
+    Router::new()
+        .route(
+            "/activity",
+            post(create_activity_entries::create_activity_entries),
+        )
+        .route(
+            "activity",
+            get(read_activity_entries::read_activity_entries),
+        )
 }
