@@ -31,7 +31,7 @@ use crate::{
 
 /// Request parameters for finding a user.
 #[derive(Debug, Deserialize, IntoParams)]
-pub struct FindFoodEntryRequest {
+pub struct ReadFoodEntriesRequest {
     /// user ID to search by.
     pub user_id: Uuid,
     pub limit: Option<u32>,
@@ -71,7 +71,7 @@ pub struct MacrosResult {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct FindFoodEntryResponse {
+pub struct ReadFoodEntriesResponse {
     pub found_food_entries: u32,
     pub food_entries: Vec<FoundFoodRecord>,
     pub calories_result: CaloriesResult,
@@ -104,17 +104,17 @@ impl From<&FoodEntry> for FoundFoodRecord {
     get,
     path = "food", 
     tag = "food", 
-    params(FindFoodEntryRequest),
+    params(ReadFoodEntriesRequest),
     responses(
-        (status = 200, description = "Found food entries", body = FindFoodEntryResponse)
+        (status = 200, description = "Found food entries", body = ReadFoodEntriesResponse)
 ))]
 #[instrument]
 pub async fn read_food_entries(
     State(food_state): State<Arc<FoodState>>,
     State(user_state): State<Arc<UserState>>,
 
-    Query(request): Query<FindFoodEntryRequest>,
-) -> Result<(StatusCode, Json<FindFoodEntryResponse>), YuhuhError> {
+    Query(request): Query<ReadFoodEntriesRequest>,
+) -> Result<(StatusCode, Json<ReadFoodEntriesResponse>), YuhuhError> {
     debug!("entering read_food_entries");
 
     if (user_state
@@ -184,7 +184,7 @@ pub async fn read_food_entries(
         mapped_food_records.push(FoundFoodRecord::from(fr));
     });
 
-    let response = Json(FindFoodEntryResponse {
+    let response = Json(ReadFoodEntriesResponse {
         found_food_entries: mapped_food_records.len() as u32,
         food_entries: mapped_food_records,
         calories_result,
@@ -210,7 +210,7 @@ mod tests {
     use tower::ServiceExt;
     use url::form_urlencoded;
 
-    use crate::food::read_food_entries::{CaloriesResult, FindFoodEntryResponse, MacrosResult};
+    use crate::food::read_food_entries::{CaloriesResult, MacrosResult, ReadFoodEntriesResponse};
 
     /// Tests that food entries are returned for a specific user in descending order by logged date
     #[tokio::test]
@@ -239,7 +239,7 @@ mod tests {
 
         // Parse the response body
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let dto: FindFoodEntryResponse =
+        let dto: ReadFoodEntriesResponse =
             serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
 
         // Verify correct number of entries returned
@@ -274,7 +274,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let dto: FindFoodEntryResponse =
+        let dto: ReadFoodEntriesResponse =
             serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
 
         // Verify calorie totals and count of entries missing calorie data
@@ -311,7 +311,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let dto: FindFoodEntryResponse =
+        let dto: ReadFoodEntriesResponse =
             serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
 
         // Verify macro totals and count of entries missing each macro
@@ -359,7 +359,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let dto: FindFoodEntryResponse =
+        let dto: ReadFoodEntriesResponse =
             serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
 
         // Should only return entries before current time (excludes future entry)
@@ -399,7 +399,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let dto: FindFoodEntryResponse =
+        let dto: ReadFoodEntriesResponse =
             serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
 
         // Should only return entries after current time (only the future entry)
@@ -432,7 +432,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
 
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let dto: FindFoodEntryResponse =
+        let dto: ReadFoodEntriesResponse =
             serde_json::from_slice(&body).expect("valid FindFoodEntryResponse bytes");
 
         // Should return only the third entry when skipping first two
