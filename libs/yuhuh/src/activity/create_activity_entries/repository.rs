@@ -37,7 +37,7 @@ impl CreateActivityEntriesRepositoryImpl {
 impl CreateActivityEntriesRepository for CreateActivityEntriesRepositoryImpl {
     async fn create_activity_entries(&self, entries: Vec<ActivityEntry>) -> Result<(), YuhuhError> {
         if entries.is_empty() {
-            error!("create_food_entries received an empty vec");
+            error!("create_activity_entries received an empty vec");
 
             return Err(YuhuhError::BadRequest(
                 "cannot create zero entries".to_string(),
@@ -52,7 +52,7 @@ impl CreateActivityEntriesRepository for CreateActivityEntriesRepositoryImpl {
         let mut activity_info: Vec<serde_json::Value> = vec![];
 
         entries.into_iter().for_each(|f| {
-            info!(food_entry=?f, "added activity entry to creation query");
+            info!(activity_entry=?f, "added activity entry to creation query");
             activity_vecs.push(f.activity);
             activity_type.push(f.activity_type.to_string());
             activity_info.push(f.activity_info);

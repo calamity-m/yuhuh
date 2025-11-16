@@ -1,4 +1,4 @@
--- Create users for create_mood_entry
+-- Create users for create_mood_entries
 INSERT INTO
     users (
         user_id,

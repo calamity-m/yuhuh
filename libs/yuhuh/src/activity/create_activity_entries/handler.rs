@@ -23,7 +23,7 @@ use crate::{
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct CreateActivityEntryRequest {
     pub user_id: Uuid,
-    pub food_entries: Vec<NewActivityEntry>,
+    pub mood_entries: Vec<NewActivityEntry>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -89,7 +89,7 @@ pub async fn create_activity_entries(
         .create_activity_entries_repo
         .create_activity_entries(
             request
-                .food_entries
+                .mood_entries
                 .into_iter()
                 .map(|f| f.into(request.user_id))
                 .collect(),
