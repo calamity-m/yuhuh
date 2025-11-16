@@ -1,8 +1,5 @@
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
 use sqlx::PgPool;
-use tracing::{error, info};
-use uuid::Uuid;
 
 use crate::{activity::model::ActivityEntry, error::YuhuhError};
 

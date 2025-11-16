@@ -90,14 +90,10 @@ mod tests {
         body::Body,
         http::{self, Request, StatusCode},
     };
-    use serde_json::json;
     use tower::ServiceExt;
     use uuid::uuid;
 
-    use crate::{
-        food::create_food_entry::{CreateFoodEntryRequest, NewFoodEntry},
-        mood::{create_mood_entry::CreateMoodEntryRequest, rating::Rating},
-    };
+    use crate::mood::{create_mood_entry::CreateMoodEntryRequest, rating::Rating};
 
     #[tokio::test]
     async fn create_mood_entry_correctly() {

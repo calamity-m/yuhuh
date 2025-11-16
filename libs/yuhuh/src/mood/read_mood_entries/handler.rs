@@ -242,7 +242,7 @@ mod tests {
 
         // Parse the response body
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        let mut dto: ReadMoodEntriesResponse =
+        let dto: ReadMoodEntriesResponse =
             serde_json::from_slice(&body).expect("valid ReadMoodEntriesResponse bytes");
 
         assert_eq!(dto.found_entries.len(), 1);
