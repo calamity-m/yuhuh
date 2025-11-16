@@ -4,10 +4,7 @@ use sqlx::PgPool;
 use tracing::{error, info};
 use uuid::Uuid;
 
-use crate::{
-    activity::model::{ActivityEntry, ActivityType},
-    error::YuhuhError,
-};
+use crate::{activity::model::ActivityEntry, error::YuhuhError};
 
 // =============================================================================
 // Traits

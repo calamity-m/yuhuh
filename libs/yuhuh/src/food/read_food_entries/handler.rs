@@ -133,7 +133,7 @@ pub async fn read_food_entries(
 
     let food_records = food_state
         .read_food_entries_repo
-        .find_food_entries(
+        .read_food_entries(
             &request.user_id,
             request.logged_before_date,
             request.logged_after_date,

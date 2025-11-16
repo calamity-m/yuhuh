@@ -119,10 +119,7 @@ mod tests {
     use tower::ServiceExt;
     use uuid::uuid;
 
-    use crate::{
-        food::create_food_entries::{CreateFoodEntryRequest, NewFoodEntry},
-        state::create_app_state,
-    };
+    use crate::food::create_food_entries::{CreateFoodEntryRequest, NewFoodEntry};
 
     #[tokio::test]
     async fn create_food_entries_correctly() {
@@ -168,7 +165,7 @@ mod tests {
         let created = state
             .food
             .read_food_entries_repo
-            .find_food_entries(
+            .read_food_entries(
                 &uuid!("11111111-1111-1111-1111-111111111111"),
                 None,
                 None,
@@ -247,7 +244,7 @@ mod tests {
         let created = state
             .food
             .read_food_entries_repo
-            .find_food_entries(
+            .read_food_entries(
                 &uuid!("11111111-1111-1111-1111-111111111111"),
                 None,
                 None,

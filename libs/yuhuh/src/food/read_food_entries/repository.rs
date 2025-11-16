@@ -7,8 +7,8 @@ use uuid::Uuid;
 use crate::{error::YuhuhError, food::model::FoodEntry};
 
 #[async_trait]
-pub trait FindFoodEntryRepository: std::fmt::Debug + Send + Sync + 'static {
-    async fn find_food_entries(
+pub trait ReadFoodEntriesRepository: std::fmt::Debug + Send + Sync + 'static {
+    async fn read_food_entries(
         &self,
         user_id: &Uuid,
         before: Option<DateTime<Utc>>,
@@ -19,19 +19,19 @@ pub trait FindFoodEntryRepository: std::fmt::Debug + Send + Sync + 'static {
 }
 
 #[derive(Debug)]
-pub struct FindFoodEntryRepositoryImpl {
+pub struct ReadFoodEntriesRepositoryImpl {
     pub db: PgPool,
 }
 
-impl FindFoodEntryRepositoryImpl {
+impl ReadFoodEntriesRepositoryImpl {
     pub fn new(db: PgPool) -> Self {
-        FindFoodEntryRepositoryImpl { db }
+        ReadFoodEntriesRepositoryImpl { db }
     }
 }
 
 #[async_trait]
-impl FindFoodEntryRepository for FindFoodEntryRepositoryImpl {
-    async fn find_food_entries(
+impl ReadFoodEntriesRepository for ReadFoodEntriesRepositoryImpl {
+    async fn read_food_entries(
         &self,
         user_id: &Uuid,
         before: Option<DateTime<Utc>>,
