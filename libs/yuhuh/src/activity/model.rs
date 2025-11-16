@@ -41,4 +41,5 @@ pub struct ActivityEntry {
     pub activity: String,
     pub activity_type: ActivityType,
     pub activity_info: serde_json::Value,
+    pub logged_at: DateTime<Utc>,
 }

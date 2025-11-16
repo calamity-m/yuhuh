@@ -50,6 +50,7 @@ impl CreateActivityEntriesRepository for CreateActivityEntriesRepositoryImpl {
         let mut activity_vecs: Vec<String> = vec![];
         let mut activity_type: Vec<String> = vec![];
         let mut activity_info: Vec<serde_json::Value> = vec![];
+        let mut logged_at_vecs: Vec<NaiveDateTime> = vec![];
 
         entries.into_iter().for_each(|f| {
             info!(activity_entry=?f, "added activity entry to creation query");
@@ -57,6 +58,7 @@ impl CreateActivityEntriesRepository for CreateActivityEntriesRepositoryImpl {
             activity_type.push(f.activity_type.to_string());
             activity_info.push(f.activity_info);
             user_id_vecs.push(f.user_id);
+            logged_at_vecs.push(f.logged_at.naive_utc());
         });
 
         sqlx::query!(
@@ -65,19 +67,22 @@ impl CreateActivityEntriesRepository for CreateActivityEntriesRepositoryImpl {
                 user_id, 
                 activity, 
                 activity_type, 
-                activity_info
+                activity_info,
+                logged_at
             )
             SELECT * FROM UNNEST(
                 $1::uuid[], 
                 $2::text[],
                 $3::text[],
-                $4::jsonb[]
+                $4::jsonb[],
+                $5::timestamp[]
             )
             "#,
             &user_id_vecs[..],
             &activity_vecs[..],
             &activity_type[..],
-            &activity_info[..]
+            &activity_info[..],
+            &logged_at_vecs[..]
         )
         .execute(&mut *transaction)
         .await

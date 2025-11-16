@@ -49,13 +49,10 @@ impl NewActivityEntry {
             activity: self.activity,
             activity_type: self.activity_type,
             activity_info: self.activity_info,
+            logged_at: self.logged_at.unwrap_or(Utc::now()),
         }
     }
 }
-
-// =============================================================================
-// HTTP Handlers
-// =============================================================================
 
 // =============================================================================
 // HTTP Handlers
