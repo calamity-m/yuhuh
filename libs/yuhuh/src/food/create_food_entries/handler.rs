@@ -43,7 +43,7 @@ pub struct NewFoodEntry {
 // ============================================================================
 
 impl NewFoodEntry {
-    pub fn into_food_entry(&self, user_id: Uuid) -> FoodEntry {
+    pub fn into(&self, user_id: Uuid) -> FoodEntry {
         FoodEntry {
             food_record_id: None,
             user_id,
@@ -92,7 +92,7 @@ pub async fn create_food_entries(
     let food_entries: Vec<FoodEntry> = request
         .food_entries
         .iter()
-        .map(|f| f.into_food_entry(request.user_id))
+        .map(|f| f.into(request.user_id))
         .collect();
 
     debug!(food_entries=?food_entries, "food entries mapped");
