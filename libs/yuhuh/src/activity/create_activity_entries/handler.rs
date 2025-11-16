@@ -61,7 +61,7 @@ impl NewActivityEntry {
 // HTTP Handlers
 // =============================================================================
 
-/// Create food entries for a user
+/// Create activity entries for a user
 #[utoipa::path(
         post,
         path = "activity",

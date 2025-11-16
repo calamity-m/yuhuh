@@ -68,7 +68,7 @@ impl NewFoodEntry {
         path = "food/create",
         tag = "food",
         responses(
-            (status = 201, description = "food entry created successfully"),
+            (status = 201, description = "food entries created successfully"),
         )
     )]
 #[instrument]
