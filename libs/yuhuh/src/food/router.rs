@@ -1,6 +1,6 @@
 use crate::{
     food::{
-        create_food_entry::{self},
+        create_food_entries::{self},
         find_food_entry::{self},
     },
     state::AppState,
@@ -17,7 +17,10 @@ use utoipa::OpenApi;
 // =============================================================================
 
 #[derive(OpenApi)]
-#[openapi(paths(find_food_entry::find_food_entry, create_food_entry::create_food_entry))]
+#[openapi(paths(
+    find_food_entry::find_food_entry,
+    create_food_entries::create_food_entry
+))]
 pub struct FoodApi;
 
 // =============================================================================
@@ -27,5 +30,5 @@ pub struct FoodApi;
 pub fn food_router() -> Router<AppState> {
     Router::new()
         .route("/food", get(find_food_entry::find_food_entry))
-        .route("/food/create", post(create_food_entry::create_food_entry))
+        .route("/food/create", post(create_food_entries::create_food_entry))
 }

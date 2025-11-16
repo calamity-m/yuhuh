@@ -117,7 +117,7 @@ mod tests {
     use tower::ServiceExt;
     use uuid::uuid;
 
-    use crate::food::create_food_entry::{CreateFoodEntryRequest, NewFoodEntry};
+    use crate::food::create_food_entries::{CreateFoodEntryRequest, NewFoodEntry};
 
     #[tokio::test]
     async fn create_food_entry_correctly() {

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use sqlx::PgPool;
 
 use crate::food::{
-    create_food_entry::{CreateFoodEntryRepository, CreateFoodEntryRepositoryImpl},
+    create_food_entries::{CreateFoodEntryRepository, CreateFoodEntryRepositoryImpl},
     find_food_entry::{FindFoodEntryRepository, FindFoodEntryRepositoryImpl},
 };
 
