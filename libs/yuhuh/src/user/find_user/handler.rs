@@ -156,7 +156,7 @@ mod tests {
 
     #[tokio::test]
     async fn correct_user_returned_from_id() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/find_user.sql"))
@@ -195,7 +195,7 @@ mod tests {
 
     #[tokio::test]
     async fn correct_user_returned_from_discord_id() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/find_user.sql"))

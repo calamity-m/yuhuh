@@ -124,7 +124,7 @@ mod tests {
 
     #[tokio::test]
     async fn correctly_create_discord_user() {
-        let (app, _) = crate::test::common::setup().await;
+        let (app, _, _) = crate::test::common::setup().await;
 
         let request = CreateDiscordUserRequest {
             discord_id: 1,

@@ -114,7 +114,7 @@ mod tests {
 
     #[tokio::test]
     async fn invalid_user_returns_not_found() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!(

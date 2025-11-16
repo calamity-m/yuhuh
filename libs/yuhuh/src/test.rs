@@ -8,7 +8,9 @@ pub mod common {
     use sqlx::PgPool;
     use tracing::Span;
 
-    pub async fn setup() -> (Router, PgPool) {
+    use crate::state::AppState;
+
+    pub async fn setup() -> (Router, PgPool, AppState) {
         let _ = tracing_subscriber::fmt()
             .with_test_writer()
             .with_max_level(tracing::Level::DEBUG)
@@ -25,6 +27,8 @@ pub mod common {
             .await
             .expect("db migrations successful");
 
-        (app, db)
+        let state = crate::state::create_app_state(&crate::config::Config::default(), db.clone());
+
+        (app, db, state)
     }
 }

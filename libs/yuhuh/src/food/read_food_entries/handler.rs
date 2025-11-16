@@ -215,7 +215,7 @@ mod tests {
     /// Tests that food entries are returned for a specific user in descending order by logged date
     #[tokio::test]
     async fn correct_user_food_entries_returned() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
@@ -253,7 +253,7 @@ mod tests {
     /// Tests that total calories are calculated correctly from all food entries
     #[tokio::test]
     async fn calculates_calories_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
@@ -290,7 +290,7 @@ mod tests {
     /// Tests that macronutrients (carbs, protein, fats) are calculated correctly
     #[tokio::test]
     async fn calculates_macros_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
@@ -331,7 +331,7 @@ mod tests {
     /// Tests that the logged_before_date filter correctly excludes entries after the specified date
     #[tokio::test]
     async fn before_filters_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
@@ -371,7 +371,7 @@ mod tests {
     /// Tests that the logged_after_date filter correctly excludes entries before the specified date
     #[tokio::test]
     async fn after_filters_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
@@ -410,7 +410,7 @@ mod tests {
     /// Tests that pagination with offset and limit works correctly
     #[tokio::test]
     async fn paginates_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
@@ -443,7 +443,7 @@ mod tests {
     /// Tests that querying for a non-existent user returns 404 Not Found
     #[tokio::test]
     async fn user_not_found_handled() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)

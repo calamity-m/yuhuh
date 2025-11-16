@@ -123,7 +123,7 @@ mod tests {
 
     #[tokio::test]
     async fn correct_user_mood_entries_returned() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/read_mood_entries.sql"))
@@ -212,7 +212,7 @@ mod tests {
 
     #[tokio::test]
     async fn before_filters_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/read_mood_entries.sql"))
@@ -252,7 +252,7 @@ mod tests {
 
     #[tokio::test]
     async fn after_filters_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/read_mood_entries.sql"))
@@ -300,7 +300,7 @@ mod tests {
 
     #[tokio::test]
     async fn user_not_found_handled() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/read_mood_entries.sql"))
@@ -325,7 +325,7 @@ mod tests {
 
     #[tokio::test]
     async fn offset_paginates_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/read_mood_entries.sql"))
@@ -361,7 +361,7 @@ mod tests {
 
     #[tokio::test]
     async fn limit_paginates_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/read_mood_entries.sql"))
@@ -402,7 +402,7 @@ mod tests {
 
     #[tokio::test]
     async fn empty_results_returns_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!("../../migrations/test/read_mood_entries.sql"))

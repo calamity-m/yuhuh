@@ -108,6 +108,7 @@ pub async fn create_food_entries(
 #[cfg(test)]
 mod tests {
 
+    use chrono::{Duration, Timelike, Utc};
     use pretty_assertions::assert_eq;
 
     use axum::{
@@ -118,11 +119,14 @@ mod tests {
     use tower::ServiceExt;
     use uuid::uuid;
 
-    use crate::food::create_food_entries::{CreateFoodEntryRequest, NewFoodEntry};
+    use crate::{
+        food::create_food_entries::{CreateFoodEntryRequest, NewFoodEntry},
+        state::create_app_state,
+    };
 
     #[tokio::test]
     async fn create_food_entries_correctly() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, state) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!(
@@ -136,10 +140,10 @@ mod tests {
             user_id: uuid!("11111111-1111-1111-1111-111111111111"),
             food_entries: vec![NewFoodEntry {
                 description: "new food entry".to_string(),
-                calories: Some(10.0),
+                calories: Some(5.0),
                 carbs: Some(10.0),
-                protein: Some(10.0),
-                fats: Some(10.0),
+                protein: Some(15.0),
+                fats: Some(20.0),
                 micronutrients: Some(json!("{}")),
                 logged_at: None,
             }],
@@ -160,11 +164,109 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::CREATED);
+
+        let created = state
+            .food
+            .read_food_entries_repo
+            .find_food_entries(
+                &uuid!("11111111-1111-1111-1111-111111111111"),
+                None,
+                None,
+                100,
+                0,
+            )
+            .await
+            .expect("no errors on reading newly created entry");
+
+        assert_eq!(created.len(), 1);
+        assert_eq!(created[0].calories, Some(5.0));
+        assert_eq!(created[0].carbs, Some(10.0));
+        assert_eq!(created[0].protein, Some(15.0));
+        assert_eq!(created[0].fats, Some(20.0));
+        assert_eq!(created[0].micronutrients, Some(json!("{}")));
+
+        let now = Utc::now();
+        let one_day_ago = now - Duration::days(1);
+        let one_day_ahead = now + Duration::days(1);
+
+        // Example: testing a timestamp that should be "now"
+        let timestamp_to_test = created[0].logged_at;
+
+        assert!(
+            timestamp_to_test >= one_day_ago && timestamp_to_test <= one_day_ahead,
+            "Timestamp {:?} is not within range [{:?}, {:?}]",
+            timestamp_to_test,
+            one_day_ago,
+            one_day_ahead
+        );
+    }
+
+    #[tokio::test]
+    async fn logged_at_can_be_prepopulated() {
+        let (app, db, state) = crate::test::common::setup().await;
+
+        // Load test data into the database
+        sqlx::raw_sql(include_str!(
+            "../../migrations/test/create_food_entries.sql"
+        ))
+        .execute(&db)
+        .await
+        .expect("setup test sql ran successfully");
+
+        let logged_at_time = Utc::now() + Duration::days(10);
+
+        let request = CreateFoodEntryRequest {
+            user_id: uuid!("11111111-1111-1111-1111-111111111111"),
+            food_entries: vec![NewFoodEntry {
+                description: "new food entry".to_string(),
+                calories: Some(5.0),
+                carbs: Some(10.0),
+                protein: Some(15.0),
+                fats: Some(20.0),
+                micronutrients: Some(json!("{}")),
+                logged_at: Some(logged_at_time),
+            }],
+        };
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/food/create")
+                    .header(http::header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(
+                        serde_json::to_string(&request).expect("request is valid body"),
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+
+        let created = state
+            .food
+            .read_food_entries_repo
+            .find_food_entries(
+                &uuid!("11111111-1111-1111-1111-111111111111"),
+                None,
+                None,
+                100,
+                0,
+            )
+            .await
+            .expect("no errors on reading newly created entry");
+
+        // Get rid of nanoseconds here as we don't care about validating those really
+        let expected_truncated = created[0].logged_at.with_nanosecond(0).unwrap();
+        let actual_truncated = logged_at_time.with_nanosecond(0).unwrap();
+
+        assert_eq!(expected_truncated, actual_truncated)
     }
 
     #[tokio::test]
     async fn invalid_user_returns_not_found() {
-        let (app, db) = crate::test::common::setup().await;
+        let (app, db, _) = crate::test::common::setup().await;
 
         // Load test data into the database
         sqlx::raw_sql(include_str!(
@@ -176,15 +278,7 @@ mod tests {
 
         let request = CreateFoodEntryRequest {
             user_id: uuid!("11111111-5555-3333-2222-111111111111"),
-            food_entries: vec![NewFoodEntry {
-                description: "new food entry".to_string(),
-                calories: Some(10.0),
-                carbs: Some(10.0),
-                protein: Some(10.0),
-                fats: Some(10.0),
-                micronutrients: Some(json!("{}")),
-                logged_at: None,
-            }],
+            food_entries: vec![],
         };
 
         let response = app
