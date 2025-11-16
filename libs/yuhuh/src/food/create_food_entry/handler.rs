@@ -85,7 +85,7 @@ pub async fn create_food_entry(
         .await?)
         .is_none()
     {
-        return Err(YuhuhError::BadRequest("user not found".to_string()));
+        return Err(YuhuhError::NotFound("user not found".to_string()));
     }
 
     let food_entries: Vec<FoodEntry> = request
@@ -160,7 +160,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn invalid_user_returns_bad_request() {
+    async fn invalid_user_returns_not_found() {
         let (app, db) = crate::test::common::setup().await;
 
         // Load test data into the database
@@ -196,6 +196,6 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 }

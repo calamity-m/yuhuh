@@ -1,4 +1,4 @@
--- Create users for find_food_entry
+-- Create users for read_mood_entries
 INSERT INTO
     users (
         user_id,
