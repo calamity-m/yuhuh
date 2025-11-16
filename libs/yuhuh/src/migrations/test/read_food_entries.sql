@@ -1,4 +1,4 @@
--- Create users for find_food_entry
+-- Create users for read_food_entries
 INSERT INTO
     users (
         user_id,
@@ -45,7 +45,8 @@ INSERT INTO
         carbs,
         protein,
         fats,
-        micronutrients
+        micronutrients,
+        logged_at
     )
 VALUES
     (
@@ -57,7 +58,8 @@ VALUES
         5.0::real,
         5.0::real,
         5.0::real,
-        '{}'::jsonb
+        '{}'::jsonb,
+        now() - interval '1 day'
     ),
     (
         '11111111-1111-1111-1111-222222222222'::uuid,
@@ -68,7 +70,8 @@ VALUES
         NULL,
         NULL,
         NULL,
-        '{}'::jsonb
+        '{}'::jsonb,
+        now() + interval '1 day'
     ),
     (
         '11111111-1111-1111-1111-333333333333'::uuid,
@@ -79,7 +82,8 @@ VALUES
         5.0::real,
         5.0::real,
         5.0::real,
-        '{}'::jsonb
+        '{}'::jsonb,
+        now() - interval '5 days'
     ),
     (
         '22222222-2222-2222-2222-222222222222'::uuid,
@@ -90,5 +94,6 @@ VALUES
         5.0::real,
         5.0::real,
         5.0::real,
-        '{}'::jsonb
+        '{}'::jsonb,
+        now()
     );

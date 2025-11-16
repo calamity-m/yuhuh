@@ -109,13 +109,13 @@ impl From<&FoodEntry> for FoundFoodRecord {
         (status = 200, description = "Found food entries", body = FindFoodEntryResponse)
 ))]
 #[instrument]
-pub async fn find_food_entry(
+pub async fn read_food_entries(
     State(food_state): State<Arc<FoodState>>,
     State(user_state): State<Arc<UserState>>,
 
     Query(request): Query<FindFoodEntryRequest>,
 ) -> Result<(StatusCode, Json<FindFoodEntryResponse>), YuhuhError> {
-    debug!("entering find_food_entry");
+    debug!("entering read_food_entries");
 
     if (user_state
         .find_user_repo
@@ -132,7 +132,7 @@ pub async fn find_food_entry(
     debug!(offset=?offset, limit=?limit, "calculated offset and limit");
 
     let food_records = food_state
-        .find_food_entry_repo
+        .read_food_entries_repo
         .find_food_entries(
             &request.user_id,
             request.logged_before_date,
@@ -210,7 +210,7 @@ mod tests {
     use tower::ServiceExt;
     use url::form_urlencoded;
 
-    use crate::food::find_food_entry::{CaloriesResult, FindFoodEntryResponse, MacrosResult};
+    use crate::food::read_food_entries::{CaloriesResult, FindFoodEntryResponse, MacrosResult};
 
     /// Tests that food entries are returned for a specific user in descending order by logged date
     #[tokio::test]
@@ -218,7 +218,7 @@ mod tests {
         let (app, db) = crate::test::common::setup().await;
 
         // Load test data into the database
-        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+        sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
             .await
             .expect("setup test sql ran successfully");
@@ -255,7 +255,7 @@ mod tests {
     async fn calculates_calories_correctly() {
         let (app, db) = crate::test::common::setup().await;
 
-        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+        sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
             .await
             .expect("setup test sql ran successfully");
@@ -292,7 +292,7 @@ mod tests {
     async fn calculates_macros_correctly() {
         let (app, db) = crate::test::common::setup().await;
 
-        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+        sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
             .await
             .expect("setup test sql ran successfully");
@@ -333,7 +333,7 @@ mod tests {
     async fn before_filters_correctly() {
         let (app, db) = crate::test::common::setup().await;
 
-        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+        sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
             .await
             .expect("setup test sql ran successfully");
@@ -373,7 +373,7 @@ mod tests {
     async fn after_filters_correctly() {
         let (app, db) = crate::test::common::setup().await;
 
-        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+        sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
             .await
             .expect("setup test sql ran successfully");
@@ -412,7 +412,7 @@ mod tests {
     async fn paginates_correctly() {
         let (app, db) = crate::test::common::setup().await;
 
-        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+        sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
             .await
             .expect("setup test sql ran successfully");
@@ -445,7 +445,7 @@ mod tests {
     async fn user_not_found_handled() {
         let (app, db) = crate::test::common::setup().await;
 
-        sqlx::raw_sql(include_str!("../../migrations/test/find_food_entry.sql"))
+        sqlx::raw_sql(include_str!("../../migrations/test/read_food_entries.sql"))
             .execute(&db)
             .await
             .expect("setup test sql ran successfully");

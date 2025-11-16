@@ -45,7 +45,8 @@ INSERT INTO
         mood,
         energy,
         sleep,
-        notes
+        notes,
+        logged_at
     )
 VALUES
     (
@@ -56,7 +57,8 @@ VALUES
         0::smallint,
         1::smallint,
         2::smallint,
-        null
+        null,
+        now() - interval '5 day'
     ),
     (
         '11111111-1111-1111-1111-222222222222'::uuid,
@@ -66,5 +68,6 @@ VALUES
         10::smallint,
         10::smallint,
         null,
-        'alices mood thoughts'
+        'alices mood thoughts',
+        now() + interval '5 day'
     );
