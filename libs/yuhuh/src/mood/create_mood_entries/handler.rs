@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use axum::{Json, extract::State, http::StatusCode};
 
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, error, instrument};
 use utoipa::ToSchema;
@@ -34,6 +34,7 @@ pub struct NewMoodEntry {
     pub mood: Option<Rating>,
     pub energy: Option<Rating>,
     pub sleep: Option<Rating>,
+    pub logged_at: Option<DateTime<Utc>>,
 }
 
 // ============================================================================
@@ -51,7 +52,7 @@ impl NewMoodEntry {
             energy: self.energy,
             sleep: self.sleep,
             notes: self.notes,
-            logged_at: Utc::now(),
+            logged_at: self.logged_at.unwrap_or(Utc::now()),
         }
     }
 }
