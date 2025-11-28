@@ -61,14 +61,14 @@ impl CreateActivityEntriesRepository for CreateActivityEntriesRepositoryImpl {
         sqlx::query!(
             r#"
             INSERT INTO activity_records (
-                user_id, 
-                activity, 
-                activity_type, 
+                user_id,
+                activity,
+                activity_type,
                 activity_info,
                 logged_at
             )
             SELECT * FROM UNNEST(
-                $1::uuid[], 
+                $1::uuid[],
                 $2::text[],
                 $3::text[],
                 $4::jsonb[],

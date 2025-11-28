@@ -31,7 +31,7 @@ pub fn activity_router() -> Router<AppState> {
             post(create_activity_entries::create_activity_entries),
         )
         .route(
-            "activity",
+            "/activity",
             get(read_activity_entries::read_activity_entries),
         )
 }
