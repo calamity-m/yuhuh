@@ -5,6 +5,7 @@ target
 
 # IDE
 .vscode
+.zed
 
 # Local
 .env
